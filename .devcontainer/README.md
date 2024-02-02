@@ -31,6 +31,8 @@ devcontainerの詳細については、[devcontainerを使用した開発につ�
 フロントエンドとバックエンドのビルドを行うためのコマンドは以下の通り。
 ※ビルドをGrafanaに反映させるためには、grafanaのserviceを再起動する必要がある。  
 ```bash
+# 依存関係のインストール
+npm install
 # プラグインのフロントエンドをビルド(開発モード)
 npm run dev
 # プラグインのフロントエンドをビルド
