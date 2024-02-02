@@ -1,1 +1,28 @@
-node_modules/
+# Node.js dependencies
+node_modules
+npm-debug.log
+
+# Build artifacts
+dist
+
+# Cypress artifacts
+cypress/videos
+cypress/screenshots
+
+# VS Code settings
+.vscode
+
+# Go artifacts
+*.exe
+*.test
+*.out
+
+# Ignore .env files
+.env
+
+# Ignore Jest coverage
+coverage
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
