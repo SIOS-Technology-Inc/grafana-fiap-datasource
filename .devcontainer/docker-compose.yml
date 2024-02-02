@@ -1,0 +1,26 @@
+version: "3.0"
+
+services:
+  grafana:
+    platform: "linux/amd64"
+    image: grafana/grafana-enterprise:10.3.1-ubuntu
+    build:
+      context: .
+      dockerfile: Dockerfile_grafana
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - type: bind
+        source: "../sios-fiap-datasource/dist"
+        target: "/var/lib/grafana/plugins/sios-fiap-datasource"
+    environment:
+      - GF_DEFAULT_APP_MODEL=development
+
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile_dev
+    volumes:
+      - type: bind
+        source: ../
+        target: /app

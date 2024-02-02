@@ -1,0 +1,24 @@
+# Ubuntu上にnpmとgoとmageをインストールするためのDockerfile
+FROM grafana/grafana:10.3.0-ubuntu
+
+USER root
+
+ENV GOPATH /go
+ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive TZ=Asia/Tokyo apt-get install -y tzdata wget git nodejs npm && \
+    ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
+    dpkg-reconfigure --frontend noninteractive tzdata && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    npm install -g n && \
+    n install 20.9.0 && \
+    apt-get remove -y nodejs npm && apt-get autoremove -y && \
+    wget -P /usr/local https://go.dev/dl/go1.20.13.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go && tar -C /usr/local -xzf /usr/local/go1.20.13.linux-amd64.tar.gz && \
+    rm /usr/local/go1.20.13.linux-amd64.tar.gz && \
+    git clone https://github.com/magefile/mage -b v1.15.0 --depth 1 && \
+    cd mage && mkdir /go && go run bootstrap.go
+
+WORKDIR /root

@@ -1,0 +1,7 @@
+{
+  "name": "gf-dev container",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "dev",
+  "shutdownAction": "stopCompose",
+  "workspaceFolder": "/app"
+}
