@@ -19,13 +19,16 @@ devcontainer の詳細については、[devcontainer を使用した開発に�
   ※ 筆者の環境では、VS Code と Dev Containers の環境が最新でない場合に、コンテナの起動が失敗する場合があった。
 
 ### 操作
-
+**プラグインの開発環境コンテナに入る手順**
 - VS Code で .devcontainer を含むディレクトリを開き、左下の「><」をクリックし、以下のメニューを表示する。
   ![リモートコンテナに接続するメニューを開く様子のキャプチャ](./images/vscode-capture-open-remote-menu.png)
 - 次に、[コンテナーで再度開く] を押下する。
   ![コンテナで再度開く](./images/image.png)
 - すると、以下のようにどのコンテナーの中に入るかを選択するメニューが表示される。プラグインの開発環境である[gf-dev container]と、grafana のコンテナである[grafana container]が表示されるので、[gf-dev container]を選択し、開発環境の内部に入る。
 - ![コンテナの選択](./images/image-1.png)
+
+**Grafanaのコンテナに入る手順**
+- 上記の手順と同様にコンテナを選択する画面まで作業し、[grafana container] を選択する。
 
 ## grafana plugin 開発での操作
 
