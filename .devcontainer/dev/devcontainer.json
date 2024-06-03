@@ -3,5 +3,30 @@
   "dockerComposeFile": ["../docker-compose.yml"],
   "service": "dev",
   "shutdownAction": "stopCompose",
-  "workspaceFolder": "/app"
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "go.toolsManagement.checkForUpdates": "off",
+        "go.gopath": "/go",
+        "go.gocodeAutoBuild": true,
+        "go.formatTool": "gofmt",
+        "go.useLanguageServer": true,
+        "editor.formatOnSave": false,
+        "[go]": {
+          "editor.formatOnSave": true
+        },
+        "[typescriptreact]": {
+          "editor.formatOnSave": true
+        }
+      },
+      "extensions": [
+        "golang.go",
+        "premparihar.gotestexplorer",
+        "MS-CEINTL.vscode-language-pack-ja",
+        "quicktype.quicktype"
+      ]
+    }
+  }
 }

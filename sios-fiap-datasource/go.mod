@@ -1,6 +1,6 @@
 module github.com/sios/fiap
 
-go 1.19
+go 1.21.7
 
 require github.com/grafana/grafana-plugin-sdk-go v0.204.0
 

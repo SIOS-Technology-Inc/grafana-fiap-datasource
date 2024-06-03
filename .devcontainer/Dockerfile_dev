@@ -6,6 +6,7 @@ USER root
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
 
+# install nodejs, npm, go, mage
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive TZ=Asia/Tokyo apt-get install -y tzdata wget git nodejs npm && \
     ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && \
@@ -15,10 +16,20 @@ RUN apt-get update && \
     npm install -g n && \
     n install 20.9.0 && \
     apt-get remove -y nodejs npm && apt-get autoremove -y && \
-    wget -P /usr/local https://go.dev/dl/go1.20.13.linux-amd64.tar.gz && \
-    rm -rf /usr/local/go && tar -C /usr/local -xzf /usr/local/go1.20.13.linux-amd64.tar.gz && \
-    rm /usr/local/go1.20.13.linux-amd64.tar.gz && \
+    wget -P /usr/local https://go.dev/dl/go1.21.7.linux-amd64.tar.gz && \
+    rm -rf /usr/local/go && tar -C /usr/local -xzf /usr/local/go1.21.7.linux-amd64.tar.gz && \
+    rm /usr/local/go1.21.7.linux-amd64.tar.gz && \
     git clone https://github.com/magefile/mage -b v1.15.0 --depth 1 && \
     cd mage && mkdir /go && go run bootstrap.go
 
 WORKDIR /root
+
+# install go tools
+RUN go install golang.org/x/tools/gopls@v0.14.2 &&\
+  go install github.com/cweill/gotests/...@v1.6.0 &&\
+  go install github.com/fatih/gomodifytags@v1.16.0 &&\
+  go install github.com/josharian/impl@v1.3.0 &&\
+  go install github.com/haya14busa/goplay/cmd/goplay@v1.0.0 &&\
+  go install github.com/go-delve/delve/cmd/dlv@v1.22.0 &&\
+  go install honnef.co/go/tools/cmd/staticcheck@v0.4.5 &&\
+  go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.0

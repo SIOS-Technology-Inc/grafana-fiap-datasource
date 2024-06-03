@@ -1,12 +1,12 @@
 # 開発環境について
 
-## devcontainer により開発環境を開く
+## devcontainer により開発環境を開く方法
 
 この環境では、vscode の devcontainer という機能を利用し、VS Code でコンテナ内に入って作業することができる。
 devcontainer の詳細については、[devcontainer を使用した開発についての公式ドキュメント](https://code.visualstudio.com/docs/devcontainers/containers)を参照すること。
 
 ### 前提
-
+- gitによるリポジトリの同期
 - Docker のインストール (Windows の場合は WSL2 上にインストール)
 - Docker/Rancher Desktop for Windows/Mac のインストール
 - VS Code のインストール
@@ -65,5 +65,5 @@ docker-compose.yml の存在するディレクトリで、ターミナルから`
     - Ubuntu イメージをベースとして必要な環境をセットアップ
       - セットアップ内容
         - nodejs 20.9.0
-        - go 1.20.13
+        - go 1.21.7
         - mage 1.15.0
