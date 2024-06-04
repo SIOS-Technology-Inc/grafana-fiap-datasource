@@ -1,0 +1,33 @@
+{
+  "name": "gf-dev container",
+  "dockerComposeFile": ["./docker-compose.yml"],
+  "service": "dev",
+  "shutdownAction": "stopCompose",
+  "overrideCommand": true,
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "go.toolsManagement.checkForUpdates": "off",
+        "go.gopath": "/go",
+        "go.gocodeAutoBuild": true,
+        "go.formatTool": "gofmt",
+        "go.useLanguageServer": true,
+        "editor.formatOnSave": false,
+        "[go]": {
+          "editor.formatOnSave": true
+        },
+        "[typescriptreact]": {
+          "editor.formatOnSave": true
+        }
+      },
+      "extensions": [
+        "golang.go",
+        "premparihar.gotestexplorer",
+        "MS-CEINTL.vscode-language-pack-ja",
+        "quicktype.quicktype"
+      ]
+    }
+  }
+}
