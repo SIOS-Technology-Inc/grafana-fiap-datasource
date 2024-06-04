@@ -1,7 +1,5 @@
 # Ubuntu上にnpmとgoとmageをインストールするためのDockerfile
-FROM grafana/grafana:10.3.0-ubuntu
-
-USER root
+FROM ubuntu:22.04
 
 ENV GOPATH /go
 ENV PATH $PATH:/usr/local/go/bin:$GOPATH/bin
@@ -22,14 +20,12 @@ RUN apt-get update && \
     git clone https://github.com/magefile/mage -b v1.15.0 --depth 1 && \
     cd mage && mkdir /go && go run bootstrap.go
 
-WORKDIR /root
-
 # install go tools
-RUN go install golang.org/x/tools/gopls@v0.14.2 &&\
-  go install github.com/cweill/gotests/...@v1.6.0 &&\
-  go install github.com/fatih/gomodifytags@v1.16.0 &&\
-  go install github.com/josharian/impl@v1.3.0 &&\
-  go install github.com/haya14busa/goplay/cmd/goplay@v1.0.0 &&\
-  go install github.com/go-delve/delve/cmd/dlv@v1.22.0 &&\
-  go install honnef.co/go/tools/cmd/staticcheck@v0.4.5 &&\
+RUN go install golang.org/x/tools/gopls@v0.14.2 && \
+  go install github.com/cweill/gotests/...@v1.6.0 && \
+  go install github.com/fatih/gomodifytags@v1.16.0 && \
+  go install github.com/josharian/impl@v1.3.0 && \
+  go install github.com/haya14busa/goplay/cmd/goplay@v1.0.0 && \
+  go install github.com/go-delve/delve/cmd/dlv@v1.22.0 && \
+  go install honnef.co/go/tools/cmd/staticcheck@v0.4.5 && \
   go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.0
