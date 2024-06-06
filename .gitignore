@@ -3,7 +3,8 @@ node_modules
 npm-debug.log
 
 # Build artifacts
-dist
+dist/*
+!dist/.gitkeep
 
 # Cypress artifacts
 cypress/videos
