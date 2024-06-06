@@ -3,7 +3,7 @@ version: "3.0"
 services:
   grafana:
     platform: "linux/amd64"
-    image: grafana/grafana-enterprise:10.3.1-ubuntu
+    image: grafana/grafana-enterprise:10.3.3-ubuntu
     build:
       context: .
       dockerfile: Dockerfile_grafana
