@@ -6,11 +6,11 @@ export type MyQueryForm = {
   data_range: string;
   start_time: {
     time: string;
-    link_dashboards: boolean;
+    link_dashboard: boolean;
   };
   end_time: {
     time: string;
-    link_dashboards: boolean;
+    link_dashboard: boolean;
   };
 }
 
@@ -19,11 +19,11 @@ export interface MyQuery extends DataQuery {
   data_range: string;
   start_time: {
     time: string;
-    link_dashboards: boolean;
+    link_dashboard: boolean;
   };
   end_time: {
     time: string;
-    link_dashboards: boolean;
+    link_dashboard: boolean;
   };
 }
 

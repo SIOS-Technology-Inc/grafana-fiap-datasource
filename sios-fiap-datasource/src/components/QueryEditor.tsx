@@ -1,17 +1,36 @@
-import React , { useState } from 'react';
+import React , { useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 
-import { InlineFieldRow, InlineField, Input, Button, DateTimePicker, Checkbox, RadioButtonList } from '@grafana/ui';
-import { DateTime, QueryEditorProps, dateTime } from '@grafana/data';
+import { InlineFieldRow, InlineField, Input, Button, Checkbox, RadioButtonList } from '@grafana/ui';
+import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
 import { MyDataSourceOptions, MyQueryForm, MyQuery } from '../types';
 
 import { css } from '@emotion/css';
-import { now } from 'lodash';
+
+import { transformMyQueryFormToMyQuery } from '../utils/transformMyQueryFormToMyQuery';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
-export function QueryEditor({ query, onChange, onRunQuery }: Props) {
+const isValidDateTime = (value: string) => {
+  // 空文字を許容する
+  if (value === '') {
+    return true;
+  }
+
+  const dateTimeFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+  if (!dateTimeFormat.test(value)) {
+    return "Invalid date format. Please use 'YYYY-MM-DD HH:MM:SS'";
+  }
+  const dateTime = new Date(value);
+  if (isNaN(dateTime.getTime())) {
+    return "Invalid date. Please check the values";
+  }
+  return true;
+};
+
+
+export function QueryEditor({ query, onChange, onRunQuery}: Props) {
   const fieldLimit = 100;
 
   const { control, watch } = useForm<MyQueryForm>({
@@ -20,21 +39,25 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
     defaultValues: {
       point_ids: [{ point_id : ''}],
       data_range: 'period',
-      start_time: {time: new Date().toISOString(), link_dashboards: false},
-      end_time: {time: new Date().toISOString(), link_dashboards: false},
+      start_time: {time: '', link_dashboard: false},
+      end_time: {time: '', link_dashboard: false},
     }
   });
 
-  const startLinkDashboards = watch('start_time.link_dashboards');
-  const endLinkDashboards = watch('end_time.link_dashboards');
+  const form = watch();
+
+  useEffect(() => {
+    const transformedQuery = transformMyQueryFormToMyQuery(form, query.refId);
+    onChange(transformedQuery); // 変換後のqueryをonChangeで更新
+  }, [form, query.refId, onChange]); // formが変更されるたびにこのeffectが実行されます
+
+  const startLinkDashboards = watch('start_time.link_dashboard');
+  const endLinkDashboards = watch('end_time.link_dashboard');
   
   const { fields, append,remove } = useFieldArray({
     name: 'point_ids',
     control,
   });
-
-  const [startDate, setStartDate] = useState<DateTime>(dateTime(now()));
-  const [endDate, setEndDate] = useState<DateTime>(dateTime(now()));
 
   return (
     <>
@@ -110,25 +133,26 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
         </InlineField>
       </InlineFieldRow>
       <InlineFieldRow>
-        <InlineField label="Start" labelWidth={16}>
         <Controller
-          name="end_time.time"
+          name="start_time.time"
           control={control}
-          render={({ field }) => (
-            <div style={{ pointerEvents: startLinkDashboards ? 'none' : 'auto', opacity: startLinkDashboards ? 0.4 : 1 }}>
-              <DateTimePicker
-                date={startDate}
-                onChange={(time) => {
-                  setStartDate(time);
-                  field.onChange(time.toISOString());
+          rules={{ validate: isValidDateTime }}
+          render={({ field, fieldState: { error } }) => (
+            <InlineField label="Start" labelWidth={16} invalid={Boolean(error)} error={error && error.message}>
+              <Input
+                id={`start_time`}
+                placeholder="YYYY-MM-DD HH:MM:SS"
+                value={field.value}
+                onChange={(e) => {
+                  field.onChange(e.currentTarget.value);
                 }}
+                disabled={startLinkDashboards}
               />
-            </div>
+            </InlineField>
           )}
         />
-        </InlineField>
         <Controller
-          name="start_time.link_dashboards"
+          name="start_time.link_dashboard"
           control={control}
           render={({ field }) => (
             <Checkbox
@@ -142,25 +166,26 @@ export function QueryEditor({ query, onChange, onRunQuery }: Props) {
             />
             </InlineFieldRow>
             <InlineFieldRow>
-            <InlineField label="End" labelWidth={16}>
               <Controller
-              name="end_time.time"
-              control={control}
-              render={({ field }) => (
-                <div style={{ pointerEvents: endLinkDashboards ? 'none' : 'auto', opacity: endLinkDashboards ? 0.4 : 1 }}>
-                <DateTimePicker
-                  date={endDate}
-                  onChange={(time) => {
-                    setEndDate(time);
-                    field.onChange(time.toISOString());
-                  }}
-                />
-                </div>
-              )}
-            />
-            </InlineField>
+                name="end_time.time"
+                control={control}
+                rules={{ validate: isValidDateTime }}
+                render={({ field ,fieldState:{ error }}) => (
+                  <InlineField label="End" labelWidth={16} invalid={Boolean(error)} error={error && error.message}>
+                  <Input
+                    id={`end_time`}
+                    placeholder="YYYY-MM-DD HH:MM:SS"
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(e.currentTarget.value);
+                    }}
+                    disabled={endLinkDashboards}
+                  />
+                  </InlineField>
+                )}
+              />
             <Controller
-              name="end_time.link_dashboards"
+              name="end_time.link_dashboard"
               control={control}
               render={({ field }) => (
               <Checkbox
