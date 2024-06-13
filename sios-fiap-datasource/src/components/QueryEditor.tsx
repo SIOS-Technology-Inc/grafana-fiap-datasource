@@ -1,4 +1,4 @@
-import React , { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 
 import { InlineFieldRow, InlineField, Input, Button, Checkbox, RadioButtonList } from '@grafana/ui';
@@ -8,12 +8,11 @@ import { MyDataSourceOptions, MyQueryForm, MyQuery } from '../types';
 
 import { css } from '@emotion/css';
 
-import { transformMyQueryFormToMyQuery } from '../utils/transformMyQueryFormToMyQuery';
+import { transformPointIdsToArray } from '../utils/transformPointIdsToArray'
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 const isValidDateTime = (value: string) => {
-  // 空文字を許容する
   if (value === '') {
     return true;
   }
@@ -22,10 +21,12 @@ const isValidDateTime = (value: string) => {
   if (!dateTimeFormat.test(value)) {
     return "Invalid date format. Please use 'YYYY-MM-DD HH:MM:SS'";
   }
+
   const dateTime = new Date(value);
   if (isNaN(dateTime.getTime())) {
     return "Invalid date. Please check the values";
   }
+  
   return true;
 };
 
@@ -44,15 +45,18 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
     }
   });
 
-  const form = watch();
+  const pointIds = watch('point_ids');
 
   useEffect(() => {
-    const transformedQuery = transformMyQueryFormToMyQuery(form, query.refId);
-    onChange(transformedQuery); // 変換後のqueryをonChangeで更新
-  }, [form, query.refId, onChange]); // formが変更されるたびにこのeffectが実行されます
+    const transformedQuery = transformPointIdsToArray(pointIds);
+    onChange({ ...query, point_ids: transformedQuery});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pointIds, onChange]); 
 
   const startLinkDashboards = watch('start_time.link_dashboard');
   const endLinkDashboards = watch('end_time.link_dashboard');
+  const startLinkDashboardsValue = watch('start_time.time');
+  const endLinkDashboardsValue = watch('end_time.time');
   
   const { fields, append,remove } = useFieldArray({
     name: 'point_ids',
@@ -113,7 +117,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
             control={control}
             render={({ field }) => (
               <RadioButtonList
-                name="date_range"
+                name="data_range"
                 options={[
                   { label: 'Period', value: 'period' },
                   { label: 'Latest', value: 'latest' },
@@ -122,6 +126,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                 value={field.value}
                 onChange={(value) => {
                   field.onChange(value);
+                  onChange({ ...query, data_range: value });
                 } 
                 }
                 className={css`
@@ -145,6 +150,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                 value={field.value}
                 onChange={(e) => {
                   field.onChange(e.currentTarget.value);
+                  onChange({ ...query, start_time: { time: e.currentTarget.value, link_dashboard: startLinkDashboards } });
                 }}
                 disabled={startLinkDashboards}
               />
@@ -159,7 +165,8 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
               label='Grafanaの時間指定と連動'
               onChange={(e) => {
                 field.onChange(e.currentTarget.checked);
-                }}
+                onChange({ ...query, start_time: { time: startLinkDashboardsValue, link_dashboard: e.currentTarget.checked } });
+              }}
                 checked={field.value}
               />
               )}
@@ -178,6 +185,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e.currentTarget.value);
+                      onChange({ ...query, end_time: { time: e.currentTarget.value, link_dashboard: endLinkDashboards } });
                     }}
                     disabled={endLinkDashboards}
                   />
@@ -191,8 +199,9 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
               <Checkbox
                 label='Grafanaの時間指定と連動'
                 onChange={(e) => {
-                field.onChange(e.currentTarget.checked);
-              }}
+                  field.onChange(e.currentTarget.checked);
+                  onChange({ ...query, end_time: { time: endLinkDashboardsValue, link_dashboard: e.currentTarget.checked } });
+                }}
               checked={field.value}
             />
           )}
