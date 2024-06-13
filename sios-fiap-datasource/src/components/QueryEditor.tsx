@@ -9,6 +9,7 @@ import { MyDataSourceOptions, MyQueryForm, MyQuery } from '../types';
 import { css } from '@emotion/css';
 
 import { transformPointIdsFieldArrayToArray, transformPointIdsArrayToFieldArray } from '../utils/transformPointIds';
+import { convertToISO8601 } from '../utils/convertDate';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
@@ -155,7 +156,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                 value={field.value}
                 onChange={(e) => {
                   field.onChange(e.currentTarget.value);
-                  onChange({ ...query, start_time: { time: e.currentTarget.value, link_dashboard: startLinkDashboards } });
+                  onChange({ ...query, start_time: { time: convertToISO8601(e.currentTarget.value), link_dashboard: startLinkDashboards } });
                 }}
               />
             </div>
@@ -191,7 +192,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e.currentTarget.value);
-                      onChange({ ...query, end_time: { time: e.currentTarget.value, link_dashboard: endLinkDashboards } });
+                      onChange({ ...query, end_time: { time: convertToISO8601(e.currentTarget.value), link_dashboard: endLinkDashboards } });
                     }}
                   />
                   </div>
