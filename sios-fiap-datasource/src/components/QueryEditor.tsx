@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 
 import { InlineFieldRow, InlineField, Input, Button, Checkbox, RadioButtonList } from '@grafana/ui';
@@ -8,7 +8,7 @@ import { MyDataSourceOptions, MyQueryForm, MyQuery } from '../types';
 
 import { css } from '@emotion/css';
 
-import { transformPointIdsToArray } from '../utils/transformPointIdsToArray'
+import { transformPointIdsFieldArrayToArray, transformPointIdsArrayToFieldArray } from '../utils/transformPointIds';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
@@ -38,21 +38,14 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
-      point_ids: [{ point_id : ''}],
-      data_range: 'period',
-      start_time: {time: '', link_dashboard: false},
-      end_time: {time: '', link_dashboard: false},
+      point_ids: transformPointIdsArrayToFieldArray(query.point_ids),
+      data_range: query.data_range,
+      start_time: {time: query.start_time.time, link_dashboard: query.start_time.link_dashboard},
+      end_time: {time: query.end_time.time, link_dashboard: query.end_time.link_dashboard},
     }
   });
 
   const pointIds = watch('point_ids');
-
-  useEffect(() => {
-    const transformedQuery = transformPointIdsToArray(pointIds);
-    onChange({ ...query, point_ids: transformedQuery});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pointIds, onChange]); 
-
   const startLinkDashboards = watch('start_time.link_dashboard');
   const endLinkDashboards = watch('end_time.link_dashboard');
   const startLinkDashboardsValue = watch('start_time.time');
@@ -81,6 +74,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                       value={field.value}
                       onChange={(e) => {
                         field.onChange(e);
+                        onChange({ ...query, point_ids: transformPointIdsFieldArrayToArray(pointIds)})
                       }}
                     />
                   </InlineField>

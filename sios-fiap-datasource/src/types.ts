@@ -28,6 +28,10 @@ export interface MyQuery extends DataQuery {
 }
 
 export const DEFAULT_QUERY: Partial<MyQuery> = {
+  point_ids: [''],
+  data_range: 'period',
+  start_time: {time: '', link_dashboard: false},
+  end_time: {time: '', link_dashboard: false},
 };
 
 /**
