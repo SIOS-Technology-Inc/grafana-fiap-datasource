@@ -144,6 +144,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
           rules={{ validate: isValidDateTime }}
           render={({ field, fieldState: { error } }) => (
             <InlineField label="Start" labelWidth={16} invalid={Boolean(error)} error={error && error.message}>
+            <div style={{ pointerEvents: startLinkDashboards ? 'none' : 'auto', opacity: startLinkDashboards ? 0.4 : 1 }}>
               <Input
                 id={`start_time`}
                 placeholder="YYYY-MM-DD HH:MM:SS"
@@ -152,8 +153,8 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                   field.onChange(e.currentTarget.value);
                   onChange({ ...query, start_time: { time: e.currentTarget.value, link_dashboard: startLinkDashboards } });
                 }}
-                disabled={startLinkDashboards}
               />
+            </div>
             </InlineField>
           )}
         />
@@ -179,6 +180,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                 rules={{ validate: isValidDateTime }}
                 render={({ field ,fieldState:{ error }}) => (
                   <InlineField label="End" labelWidth={16} invalid={Boolean(error)} error={error && error.message}>
+                  <div style={{ pointerEvents: endLinkDashboards ? 'none' : 'auto', opacity: endLinkDashboards ? 0.4 : 1 }}>
                   <Input
                     id={`end_time`}
                     placeholder="YYYY-MM-DD HH:MM:SS"
@@ -187,8 +189,8 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                       field.onChange(e.currentTarget.value);
                       onChange({ ...query, end_time: { time: e.currentTarget.value, link_dashboard: endLinkDashboards } });
                     }}
-                    disabled={endLinkDashboards}
                   />
+                  </div>
                   </InlineField>
                 )}
               />
