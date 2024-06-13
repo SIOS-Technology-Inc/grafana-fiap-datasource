@@ -1,4 +1,4 @@
-import React from 'react';
+import React ,{ useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 
 import { InlineFieldRow, InlineField, Input, Button, Checkbox, RadioButtonList } from '@grafana/ui';
@@ -30,11 +30,15 @@ const isValidDateTime = (value: string) => {
   return true;
 };
 
+const pointValidationRule = {
+  required: 'This field is required',
+}
+
 
 export function QueryEditor({ query, onChange, onRunQuery}: Props) {
   const fieldLimit = 100;
 
-  const { control, watch } = useForm<MyQueryForm>({
+  const { control, watch, trigger } = useForm<MyQueryForm>({
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
@@ -55,6 +59,11 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
     name: 'point_ids',
     control,
   });
+  
+  useEffect(() => {
+    trigger();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[pointIds])
 
   return (
     <>
@@ -65,8 +74,9 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
               <Controller
                 name={`point_ids.${index}.point_id`}
                 control={control}
-                render={({ field }) => (
-                  <InlineField label="point" labelWidth={16}>
+                rules={pointValidationRule}
+                render={({ field , fieldState:{ error } }) => (
+                  <InlineField label="point" labelWidth={16} invalid={Boolean(error)} error={error?.message}>
                     <Input
                       id={`point-${index}`}
                       width={52}
