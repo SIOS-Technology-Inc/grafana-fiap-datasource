@@ -7,8 +7,6 @@ import { MyDataSourceOptions } from '../types';
 
 interface Props extends DataSourcePluginOptionsEditorProps<MyDataSourceOptions> {}
 
-export const URL = '';
-
 export function ConfigEditor(props: Props) {
   const { onOptionsChange, options } = props;
 
@@ -24,7 +22,7 @@ export function ConfigEditor(props: Props) {
     const tempJsonData = { ...options.jsonData };
     const jsonData = {
       ...tempJsonData,
-      url: tempJsonData.url || URL,
+      url: tempJsonData.url || '',
     };
     onOptionsChange({ ...options, jsonData });
   };
@@ -37,15 +35,15 @@ export function ConfigEditor(props: Props) {
     reValidateMode: 'onChange',
     criteriaMode: 'all',
     defaultValues: {
-      url: jsonData.url || URL,
+      url: jsonData.url || '',
     },
   });
 
   const urlValidationRule = {
     required: 'This field is required',
     pattern: {
-      // (http|https):// に続いて半角英数字又は"_/:%#$&?()~.=+-"が1文字以上あることを確認する正規表現
-      value: /^https?:\/\/[\w/:%#\$&\?\(\)~\.=\+\-]+$/,
+      // (http|https):// に続いて1文字以上の文字列が続く形式
+      value: /^https?:\/\/.+/,
       message: 'Invalid URL format.',
     },
   }
