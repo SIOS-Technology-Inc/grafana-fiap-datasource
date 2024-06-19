@@ -9,7 +9,6 @@ import { MyDataSourceOptions, MyQueryForm, MyQuery } from '../types';
 import { css } from '@emotion/css';
 
 import { transformPointIdsFieldArrayToArray, transformPointIdsArrayToFieldArray } from '../utils/transformPointIds';
-import { convertToISO8601 } from '../utils/convertDate';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
@@ -35,6 +34,17 @@ const pointValidationRule = {
   required: 'This field is required',
 }
 
+const convertTimeStringToISO8601 = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toISOString();
+}
+
+const convertISO8601ToTimeString = (dateString: string): string => {
+  if (dateString === '') {
+    return '';
+  }
+  return dateString.replace('T', ' ').substring(0, 19);
+}
 
 export function QueryEditor({ query, onChange, onRunQuery}: Props) {
   const fieldLimit = 100;
@@ -45,8 +55,8 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
     defaultValues: {
       point_ids: transformPointIdsArrayToFieldArray(query.point_ids),
       data_range: query.data_range,
-      start_time: {time: query.start_time.time, link_dashboard: query.start_time.link_dashboard},
-      end_time: {time: query.end_time.time, link_dashboard: query.end_time.link_dashboard},
+      start_time: {time: convertISO8601ToTimeString(query.start_time.time), link_dashboard: query.start_time.link_dashboard},
+      end_time: {time: convertISO8601ToTimeString(query.end_time.time), link_dashboard: query.end_time.link_dashboard},
     }
   });
 
@@ -156,7 +166,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                 value={field.value}
                 onChange={(e) => {
                   field.onChange(e.currentTarget.value);
-                  onChange({ ...query, start_time: { time: convertToISO8601(e.currentTarget.value), link_dashboard: startLinkDashboards } });
+                  onChange({ ...query, start_time: { time: convertTimeStringToISO8601(e.currentTarget.value), link_dashboard: startLinkDashboards } });
                 }}
               />
             </div>
@@ -168,7 +178,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
           control={control}
           render={({ field }) => (
             <Checkbox
-              label='Grafanaの時間指定と連動'
+              label='sync with grafana start time'
               onChange={(e) => {
                 field.onChange(e.currentTarget.checked);
                 onChange({ ...query, start_time: { time: startLinkDashboardsValue, link_dashboard: e.currentTarget.checked } });
@@ -192,7 +202,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e.currentTarget.value);
-                      onChange({ ...query, end_time: { time: convertToISO8601(e.currentTarget.value), link_dashboard: endLinkDashboards } });
+                      onChange({ ...query, end_time: { time: convertTimeStringToISO8601(e.currentTarget.value), link_dashboard: endLinkDashboards } });
                     }}
                   />
                   </div>
@@ -204,7 +214,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
               control={control}
               render={({ field }) => (
               <Checkbox
-                label='Grafanaの時間指定と連動'
+                label='sync with grafana end time'
                 onChange={(e) => {
                   field.onChange(e.currentTarget.checked);
                   onChange({ ...query, end_time: { time: endLinkDashboardsValue, link_dashboard: e.currentTarget.checked } });
