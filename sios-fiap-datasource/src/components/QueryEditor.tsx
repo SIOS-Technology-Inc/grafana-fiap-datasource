@@ -4,11 +4,9 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { InlineFieldRow, InlineField, Input, Button, Checkbox, RadioButtonList } from '@grafana/ui';
 import { QueryEditorProps } from '@grafana/data';
 import { DataSource } from '../datasource';
-import { MyDataSourceOptions, MyQueryForm, MyQuery } from '../types';
+import { MyDataSourceOptions, MyQuery } from '../types';
 
 import { css } from '@emotion/css';
-
-import { transformPointIdsFieldArrayToArray, transformPointIdsArrayToFieldArray } from '../utils/transformPointIds';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
@@ -18,8 +16,9 @@ const isValidDateTime = (value: string) => {
   }
 
   const dateTimeFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-  if (!dateTimeFormat.test(value)) {
-    return "Invalid date format. Please use 'YYYY-MM-DD HH:MM:SS'";
+  const dateFormat = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateTimeFormat.test(value) && !dateFormat.test(value)) {
+    return "Invalid date format. Please use 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD' format.";
   }
 
   const dateTime = new Date(value);
@@ -34,29 +33,17 @@ const pointValidationRule = {
   required: 'This field is required',
 }
 
-const convertTimeStringToISO8601 = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toISOString();
-}
-
-const convertISO8601ToTimeString = (dateString: string): string => {
-  if (dateString === '') {
-    return '';
-  }
-  return dateString.replace('T', ' ').substring(0, 19);
-}
-
 export function QueryEditor({ query, onChange, onRunQuery}: Props) {
   const fieldLimit = 100;
 
-  const { control, watch, trigger } = useForm<MyQueryForm>({
+  const { control, watch, trigger } = useForm<MyQuery>({
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues: {
-      point_ids: transformPointIdsArrayToFieldArray(query.point_ids),
+      point_ids: query.point_ids,
       data_range: query.data_range,
-      start_time: {time: convertISO8601ToTimeString(query.start_time.time), link_dashboard: query.start_time.link_dashboard},
-      end_time: {time: convertISO8601ToTimeString(query.end_time.time), link_dashboard: query.end_time.link_dashboard},
+      start_time: {time: query.start_time.time, link_dashboard: query.start_time.link_dashboard},
+      end_time: {time: query.end_time.time, link_dashboard: query.end_time.link_dashboard},
     }
   });
 
@@ -95,7 +82,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                       value={field.value}
                       onChange={(e) => {
                         field.onChange(e);
-                        onChange({ ...query, point_ids: transformPointIdsFieldArrayToArray(pointIds)})
+                        onChange({ ...query, point_ids: pointIds})
                       }}
                     />
                   </InlineField>
@@ -166,7 +153,18 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                 value={field.value}
                 onChange={(e) => {
                   field.onChange(e.currentTarget.value);
-                  onChange({ ...query, start_time: { time: convertTimeStringToISO8601(e.currentTarget.value), link_dashboard: startLinkDashboards } });
+                  onChange({ ...query, start_time: { time: e.currentTarget.value, link_dashboard: startLinkDashboards } });
+                }}
+                onBlur={
+                  (e) => {
+                    const inputValue = e.currentTarget.value;
+                    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+                
+                    if(datePattern.test(inputValue)) {
+                      const newValue = `${inputValue} 00:00:00`;
+                      field.onChange(newValue);
+                      onChange({ ...query, start_time: { time: newValue, link_dashboard: startLinkDashboards } });
+                    }
                 }}
               />
             </div>
@@ -202,7 +200,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e.currentTarget.value);
-                      onChange({ ...query, end_time: { time: convertTimeStringToISO8601(e.currentTarget.value), link_dashboard: endLinkDashboards } });
+                      onChange({ ...query, end_time: { time: e.currentTarget.value, link_dashboard: endLinkDashboards } });
                     }}
                   />
                   </div>
