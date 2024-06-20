@@ -105,9 +105,9 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 	}
 
 	for _, pointID := range qm.PointIDs {
-		log.DefaultLogger.Info("Start fetch point data", "connectionURL", d.Settings.Url, "pointID", pointID)
+		log.DefaultLogger.Info("Start fetch point data", "connectionURL", d.Settings.Url, "pointID", pointID.Value)
 		log.DefaultLogger.Debug("Start fetch point data (more info)", "dataRange", qm.DataRange, "fromTime", fromTime, "toTime", toTime)
-		frame, err := d.Client.FetchWithDateRange(qm.DataRange, fromTime, toTime, pointID)
+		frame, err := d.Client.FetchWithDateRange(qm.DataRange, fromTime, toTime, pointID.Value)
 		if frame != nil {
 			// add the frames to the response.
 			response.Frames = append(response.Frames, frame)

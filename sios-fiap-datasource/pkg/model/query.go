@@ -6,10 +6,14 @@ import (
 )
 
 type FiapQuery struct {
-	PointIDs  []string      `json:"point_ids"`
+	PointIDs  []PointID     `json:"point_ids"`
 	DataRange DataRangeType `json:"data_range"`
 	StartTime LinkedTime    `json:"start_time"`
 	EndTime   LinkedTime    `json:"end_time"`
+}
+
+type PointID struct {
+	Value string `json:"point_id"`
 }
 
 type DataRangeType string
@@ -23,6 +27,8 @@ type LinkedTime struct {
 	LinkDashboard bool
 }
 
+const frontendDatetimeLayout = "2006-01-02 15:04:05"
+
 func (l *LinkedTime) UnmarshalJSON(b []byte) error {
 	var r struct {
 		FixedTime     string `json:"time"`
@@ -34,7 +40,7 @@ func (l *LinkedTime) UnmarshalJSON(b []byte) error {
 
 	if r.FixedTime == "" {
 		l.FixedTime = nil
-	} else if dt, err := time.Parse(time.RFC3339, r.FixedTime); err == nil {
+	} else if dt, err := time.Parse(frontendDatetimeLayout, r.FixedTime); err == nil {
 		l.FixedTime = &dt
 	} else {
 		return err
