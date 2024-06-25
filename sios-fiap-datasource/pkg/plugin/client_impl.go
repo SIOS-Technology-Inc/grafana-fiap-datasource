@@ -55,45 +55,34 @@ func (cli *ClientImpl) CheckHealth() (*backend.CheckHealthResult, error) {
 }
 
 func (cli *ClientImpl) FetchWithDateRange(dataRange dsmodel.DataRangeType, fromTime *time.Time, toTime *time.Time, pointID string) (*data.Frame, error) {
-	var (
-		pointArray []fiapmodel.Value
-		retErr     error = nil
-	)
+	fetchErrors := make([]error, 0)
 
+	var (
+		pointSets map[string](fiapmodel.ProcessedPointSet)
+		points    map[string]([]fiapmodel.Value)
+		fiapErr   *fiapmodel.Error
+		err       error
+	)
 	switch dataRange {
 	case dsmodel.Period:
-		if pointSets, points, fiapErr, err := cli.Client.FetchDateRange(fromTime, toTime, pointID); err == nil {
-			pointArray = points[pointID]
-			if fiapErr != nil {
-				retErr = errors.Newf("fiap error: type %s, value %s", fiapErr.Type, fiapErr.Value)
-			} else if _, ok := pointSets[pointID]; ok {
-				retErr = errors.Newf("point id '%s' provides point sets", pointID)
-			}
-		} else {
-			retErr = err
-		}
+		pointSets, points, fiapErr, err = cli.Client.FetchDateRange(fromTime, toTime, pointID)
 	case dsmodel.Latest:
-		if pointSets, points, fiapErr, err := cli.Client.FetchLatest(fromTime, toTime, pointID); err == nil {
-			pointArray = points[pointID]
-			if fiapErr != nil {
-				retErr = errors.Newf("fiap error: type %s, value %s", fiapErr.Type, fiapErr.Value)
-			} else if _, ok := pointSets[pointID]; ok {
-				retErr = errors.Newf("point id '%s' provides point sets", pointID)
-			}
-		} else {
-			retErr = err
-		}
+		pointSets, points, fiapErr, err = cli.Client.FetchLatest(fromTime, toTime, pointID)
 	case dsmodel.Oldest:
-		if pointSets, points, fiapErr, err := cli.Client.FetchOldest(fromTime, toTime, pointID); err == nil {
-			pointArray = points[pointID]
-			if fiapErr != nil {
-				retErr = errors.Newf("fiap error: type %s, value %s", fiapErr.Type, fiapErr.Value)
-			} else if _, ok := pointSets[pointID]; ok {
-				retErr = errors.Newf("point id '%s' provides point sets", pointID)
-			}
-		} else {
-			retErr = err
-		}
+		pointSets, points, fiapErr, err = cli.Client.FetchOldest(fromTime, toTime, pointID)
+	}
+	if err != nil {
+		fetchErrors = append(fetchErrors, err)
+	}
+	if fiapErr != nil {
+		fetchErrors = append(fetchErrors, errors.Newf("fiap error: type %s, value %s", fiapErr.Type, fiapErr.Value))
+	}
+	if _, ok := pointSets[pointID]; ok {
+		fetchErrors = append(fetchErrors, errors.Newf("point id '%s' provides point sets", pointID))
+	}
+	if _, ok := points[pointID]; !ok {
+		fetchErrors = append(fetchErrors, errors.Newf("point id '%s' not provides point data", pointID))
+		return nil, errors.Join(fetchErrors...)
 	}
 
 	// create data frame response.
@@ -102,20 +91,20 @@ func (cli *ClientImpl) FetchWithDateRange(dataRange dsmodel.DataRangeType, fromT
 	frame := data.NewFrame("response")
 
 	// add fields.
-	if times, values, err := pointsToFloatColumns(pointArray); err == nil {
+	if times, values, convErr := pointsToFloatColumns(points[pointID]); convErr == nil {
 		frame.Fields = append(frame.Fields,
 			data.NewField("time", nil, times),
-			data.NewField("values", nil, values),
+			data.NewField(pointID, nil, values),
 		)
 	} else {
-		times, values := pointsToDefaultColumns(pointArray)
+		times, values := pointsToDefaultColumns(points[pointID])
 		frame.Fields = append(frame.Fields,
 			data.NewField("time", nil, times),
-			data.NewField("values", nil, values),
+			data.NewField(pointID, nil, values),
 		)
 	}
 
-	return frame, retErr
+	return frame, errors.Join(fetchErrors...)
 }
 
 func pointsToFloatColumns(pointArray []fiapmodel.Value) ([]time.Time, []float64, error) {
