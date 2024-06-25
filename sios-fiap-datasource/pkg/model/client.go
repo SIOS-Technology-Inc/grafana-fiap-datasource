@@ -10,7 +10,7 @@ import (
 
 type FiapApiClient interface {
 	CheckHealth() (*backend.CheckHealthResult, error)
-	FetchWithDateRange(dataRange DataRangeType, fromTime *time.Time, toTime *time.Time, pointID string) (*data.Frame, error)
+	FetchWithDateRange(resp *backend.DataResponse, dataRange DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []PointID) error
 }
 
 type FiapApiClientCreator func(settings *FiapDatasourceSettings) (FiapApiClient, error)
@@ -43,17 +43,21 @@ func (*MockClient) CheckHealth() (*backend.CheckHealthResult, error) {
 	}, nil
 }
 
-func (*MockClient) FetchWithDateRange(dataRange DataRangeType, fromTime *time.Time, toTime *time.Time, pointID string) (*data.Frame, error) {
-	// create data frame response.
-	// For an overview on data frames and how grafana handles them:
-	// https://grafana.com/developers/plugin-tools/introduction/data-frames
-	frame := data.NewFrame("response")
+func (*MockClient) FetchWithDateRange(resp *backend.DataResponse, _ DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []PointID) error {
+	for _, pointID := range pointIDs {
+		// create data frame response.
+		// For an overview on data frames and how grafana handles them:
+		// https://grafana.com/developers/plugin-tools/introduction/data-frames
+		frame := data.NewFrame("response")
 
-	// add fields.
-	frame.Fields = append(frame.Fields,
-		data.NewField("time", nil, []time.Time{*fromTime, *toTime}),
-		data.NewField("values", nil, []int64{10, 20}),
-	)
+		// add fields.
+		frame.Fields = append(frame.Fields,
+			data.NewField("time", nil, []time.Time{*fromTime, *toTime}),
+			data.NewField(pointID.Value, nil, []int64{10, 20}),
+		)
 
-	return frame, nil
+		resp.Frames = append(resp.Frames, frame)
+	}
+
+	return nil
 }

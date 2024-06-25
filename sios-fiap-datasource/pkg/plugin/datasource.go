@@ -104,21 +104,15 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 		toTime = qm.EndTime.FixedTime
 	}
 
-	for _, pointID := range qm.PointIDs {
-		log.DefaultLogger.Info("Start fetch point data", "connectionURL", d.Settings.Url, "pointID", pointID.Value)
-		log.DefaultLogger.Debug("Start fetch point data (more info)", "dataRange", qm.DataRange, "fromTime", fromTime, "toTime", toTime)
-		frame, err := d.Client.FetchWithDateRange(qm.DataRange, fromTime, toTime, pointID.Value)
-		if frame != nil {
-			// add the frames to the response.
-			response.Frames = append(response.Frames, frame)
-		}
-		if err != nil {
-			log.DefaultLogger.Error("Error fetch point data", "json", query.JSON, "error", err)
-			return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("fiap fetch: %v", err.Error()))
-		}
-		log.DefaultLogger.Info("Finish fetch point data normally")
-		log.DefaultLogger.Debug("Finish fetch point data normally (more info)", "frame", frame)
+	log.DefaultLogger.Info("Start fetch point data", "connectionURL", d.Settings.Url, "pointIDs", qm.PointIDs)
+	log.DefaultLogger.Debug("Start fetch point data (more info)", "dataRange", qm.DataRange, "fromTime", fromTime, "toTime", toTime)
+	err := d.Client.FetchWithDateRange(&response, qm.DataRange, fromTime, toTime, qm.PointIDs)
+	if err != nil {
+		log.DefaultLogger.Error("Error fetch point data", "json", query.JSON, "error", err)
+		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("fiap fetch: %v", err.Error()))
 	}
+	log.DefaultLogger.Info("Finish fetch point data normally")
+
 	log.DefaultLogger.Info("Finish handle query normally", "method", "query")
 	log.DefaultLogger.Debug("Finish handle query normally (more info)", "response", response)
 	return response

@@ -54,7 +54,7 @@ func (cli *ClientImpl) CheckHealth() (*backend.CheckHealthResult, error) {
 	}, nil
 }
 
-func (cli *ClientImpl) FetchWithDateRange(dataRange dsmodel.DataRangeType, fromTime *time.Time, toTime *time.Time, pointID string) (*data.Frame, error) {
+func (cli *ClientImpl) FetchWithDateRange(resp *backend.DataResponse, dataRange dsmodel.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []dsmodel.PointID) error {
 	fetchErrors := make([]error, 0)
 
 	var (
@@ -65,11 +65,11 @@ func (cli *ClientImpl) FetchWithDateRange(dataRange dsmodel.DataRangeType, fromT
 	)
 	switch dataRange {
 	case dsmodel.Period:
-		pointSets, points, fiapErr, err = cli.Client.FetchDateRange(fromTime, toTime, pointID)
+		pointSets, points, fiapErr, err = cli.Client.FetchDateRange(fromTime, toTime, extractPointIDValues(pointIDs)...)
 	case dsmodel.Latest:
-		pointSets, points, fiapErr, err = cli.Client.FetchLatest(fromTime, toTime, pointID)
+		pointSets, points, fiapErr, err = cli.Client.FetchLatest(fromTime, toTime, extractPointIDValues(pointIDs)...)
 	case dsmodel.Oldest:
-		pointSets, points, fiapErr, err = cli.Client.FetchOldest(fromTime, toTime, pointID)
+		pointSets, points, fiapErr, err = cli.Client.FetchOldest(fromTime, toTime, extractPointIDValues(pointIDs)...)
 	}
 	if err != nil {
 		fetchErrors = append(fetchErrors, err)
@@ -77,34 +77,47 @@ func (cli *ClientImpl) FetchWithDateRange(dataRange dsmodel.DataRangeType, fromT
 	if fiapErr != nil {
 		fetchErrors = append(fetchErrors, errors.Newf("fiap error: type %s, value %s", fiapErr.Type, fiapErr.Value))
 	}
-	if _, ok := pointSets[pointID]; ok {
-		fetchErrors = append(fetchErrors, errors.Newf("point id '%s' provides point sets", pointID))
-	}
-	if _, ok := points[pointID]; !ok {
-		fetchErrors = append(fetchErrors, errors.Newf("point id '%s' not provides point data", pointID))
-		return nil, errors.Join(fetchErrors...)
+
+	for _, pointID := range pointIDs {
+		if _, ok := pointSets[pointID.Value]; ok {
+			fetchErrors = append(fetchErrors, errors.Newf("point id '%s' provides point sets", pointID.Value))
+		}
+		if _, ok := points[pointID.Value]; !ok {
+			fetchErrors = append(fetchErrors, errors.Newf("point id '%s' not provides point data", pointID.Value))
+			continue
+		}
+
+		// create data frame response.
+		// For an overview on data frames and how grafana handles them:
+		// https://grafana.com/developers/plugin-tools/introduction/data-frames
+		frame := data.NewFrame("response")
+
+		// add fields.
+		if times, values, convErr := pointsToFloatColumns(points[pointID.Value]); convErr == nil {
+			frame.Fields = append(frame.Fields,
+				data.NewField("time", nil, times),
+				data.NewField(pointID.Value, nil, values),
+			)
+		} else {
+			times, values := pointsToDefaultColumns(points[pointID.Value])
+			frame.Fields = append(frame.Fields,
+				data.NewField("time", nil, times),
+				data.NewField(pointID.Value, nil, values),
+			)
+		}
+
+		resp.Frames = append(resp.Frames, frame)
 	}
 
-	// create data frame response.
-	// For an overview on data frames and how grafana handles them:
-	// https://grafana.com/developers/plugin-tools/introduction/data-frames
-	frame := data.NewFrame("response")
+	return errors.Join(fetchErrors...)
+}
 
-	// add fields.
-	if times, values, convErr := pointsToFloatColumns(points[pointID]); convErr == nil {
-		frame.Fields = append(frame.Fields,
-			data.NewField("time", nil, times),
-			data.NewField(pointID, nil, values),
-		)
-	} else {
-		times, values := pointsToDefaultColumns(points[pointID])
-		frame.Fields = append(frame.Fields,
-			data.NewField("time", nil, times),
-			data.NewField(pointID, nil, values),
-		)
+func extractPointIDValues(pointIDs []dsmodel.PointID) []string {
+	retVal := make([]string, len(pointIDs))
+	for i := range pointIDs {
+		retVal[i] = pointIDs[i].Value
 	}
-
-	return frame, errors.Join(fetchErrors...)
+	return retVal
 }
 
 func pointsToFloatColumns(pointArray []fiapmodel.Value) ([]time.Time, []float64, error) {
