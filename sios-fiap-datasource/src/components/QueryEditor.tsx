@@ -93,6 +93,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                   variant='secondary'
                   onClick={() => {
                     remove(index);
+                    onChange({ ...query, point_ids: query.point_ids.filter((_, i) => i !== index)})
                   }}
                   title='minus'
                   icon='minus'
@@ -119,7 +120,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
             control={control}
             render={({ field }) => (
               <RadioButtonList
-                name="data_range"
+                name={`data_range_${query.refId}`}
                 options={[
                   { label: 'Period', value: 'period' },
                   { label: 'Latest', value: 'latest' },
