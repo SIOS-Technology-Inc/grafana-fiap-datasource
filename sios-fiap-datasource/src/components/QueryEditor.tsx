@@ -10,13 +10,14 @@ import { css } from '@emotion/css';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
+const dateTimeFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+const dateFormat = /^\d{4}-\d{2}-\d{2}$/;
+
 const isValidDateTime = (value: string) => {
   if (value === '') {
     return true;
   }
 
-  const dateTimeFormat = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
-  const dateFormat = /^\d{4}-\d{2}-\d{2}$/;
   if (!dateTimeFormat.test(value) && !dateFormat.test(value)) {
     return "Invalid date format. Please use 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DD' format.";
   }
@@ -33,7 +34,16 @@ const pointValidationRule = {
   required: 'This field is required',
 }
 
-export function QueryEditor({ query, onChange, onRunQuery}: Props) {
+const handleBlur = (e: React.FocusEvent<HTMLInputElement>, field: any, query: MyQuery ,linkDashBords: string, timeKey: string,onChange: (value: any) => void) => {
+  const inputValue = e.currentTarget.value;
+
+  if(dateFormat.test(inputValue)) {
+    const newValue = `${inputValue} 00:00:00`;
+    field.onChange(newValue);
+  }
+}
+
+export function QueryEditor({ query, onChange }: Props) {
   const fieldLimit = 100;
 
   const { control, watch, trigger } = useForm<MyQuery>({
@@ -156,17 +166,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                   field.onChange(e.currentTarget.value);
                   onChange({ ...query, start_time: { time: e.currentTarget.value, link_dashboard: startLinkDashboards } });
                 }}
-                onBlur={
-                  (e) => {
-                    const inputValue = e.currentTarget.value;
-                    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-                
-                    if(datePattern.test(inputValue)) {
-                      const newValue = `${inputValue} 00:00:00`;
-                      field.onChange(newValue);
-                      onChange({ ...query, start_time: { time: newValue, link_dashboard: startLinkDashboards } });
-                    }
-                }}
+                onBlur={(e) => handleBlur(e, field, query, startLinkDashboardsValue , 'start_time', onChange)}
               />
             </div>
             </InlineField>
@@ -203,6 +203,7 @@ export function QueryEditor({ query, onChange, onRunQuery}: Props) {
                       field.onChange(e.currentTarget.value);
                       onChange({ ...query, end_time: { time: e.currentTarget.value, link_dashboard: endLinkDashboards } });
                     }}
+                    onBlur={(e) => handleBlur(e, field, query, endLinkDashboardsValue , 'end_time', onChange)}
                   />
                   </div>
                   </InlineField>
