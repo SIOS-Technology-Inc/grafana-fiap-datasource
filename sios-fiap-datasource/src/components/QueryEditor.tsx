@@ -140,8 +140,7 @@ export function QueryEditor({ query, onChange }: Props) {
                 onChange={(value) => {
                   field.onChange(value);
                   onChange({ ...query, data_range: value });
-                } 
-                }
+                }}
                 className={css`
                   grid-template-columns: 1fr 1fr 1fr;
                 `}
@@ -167,6 +166,7 @@ export function QueryEditor({ query, onChange }: Props) {
                   onChange({ ...query, start_time: { time: e.currentTarget.value, link_dashboard: startLinkDashboards } });
                 }}
                 onBlur={(e) => handleBlur(e, field, query, startLinkDashboardsValue , 'start_time', onChange)}
+                data-testid='start-time-input'
               />
             </div>
             </InlineField>
@@ -204,6 +204,7 @@ export function QueryEditor({ query, onChange }: Props) {
                       onChange({ ...query, end_time: { time: e.currentTarget.value, link_dashboard: endLinkDashboards } });
                     }}
                     onBlur={(e) => handleBlur(e, field, query, endLinkDashboardsValue , 'end_time', onChange)}
+                    data-testid='end-time-input'
                   />
                   </div>
                   </InlineField>
