@@ -22,16 +22,17 @@ var (
 )
 
 type ClientImpl struct {
-	Client *fiap.FetchClient
+	Client   fiap.Fetcher
+	Settings *dsmodel.FiapDatasourceSettings
 }
 
 func CreateFiapApiClient(settings *dsmodel.FiapDatasourceSettings) (dsmodel.FiapApiClient, error) {
-	return &ClientImpl{Client: &fiap.FetchClient{ConnectionURL: settings.Url}}, nil
+	return &ClientImpl{Client: &fiap.FetchClient{ConnectionURL: settings.Url}, Settings: settings}, nil
 }
 
 func (cli *ClientImpl) CheckHealth() (*backend.CheckHealthResult, error) {
-	log.DefaultLogger.Info("Start to check health", "ConnectionURL", cli.Client.ConnectionURL)
-	resp, err := http.Head(cli.Client.ConnectionURL)
+	log.DefaultLogger.Info("Start to check health", "ConnectionURL", cli.Settings.Url)
+	resp, err := http.Head(cli.Settings.Url)
 	if err != nil {
 		log.DefaultLogger.Error("Failed to check health", "error", err, "response", resp)
 		return &backend.CheckHealthResult{
@@ -54,7 +55,7 @@ func (cli *ClientImpl) CheckHealth() (*backend.CheckHealthResult, error) {
 	}, nil
 }
 
-func (cli *ClientImpl) FetchWithDateRange(resp *backend.DataResponse, dataRange dsmodel.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []dsmodel.PointID) error {
+func (cli *ClientImpl) FetchWithDateRange(resp *backend.DataResponse, dataRange dsmodel.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []dsmodel.PointID, query *backend.DataQuery) error {
 	fetchErrors := make([]error, 0)
 
 	var (
@@ -90,7 +91,7 @@ func (cli *ClientImpl) FetchWithDateRange(resp *backend.DataResponse, dataRange 
 		// create data frame response.
 		// For an overview on data frames and how grafana handles them:
 		// https://grafana.com/developers/plugin-tools/introduction/data-frames
-		frame := data.NewFrame("response")
+		frame := data.NewFrame(fmt.Sprintf("%s:%s", query.RefID, pointID.Value))
 
 		// add fields.
 		if times, values, convErr := pointsToFloatColumns(points[pointID.Value]); convErr == nil {

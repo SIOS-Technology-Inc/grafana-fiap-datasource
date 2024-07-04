@@ -8,7 +8,7 @@ import (
 
 type FiapApiClient interface {
 	CheckHealth() (*backend.CheckHealthResult, error)
-	FetchWithDateRange(resp *backend.DataResponse, dataRange DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []PointID) error
+	FetchWithDateRange(resp *backend.DataResponse, dataRange DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []PointID, query *backend.DataQuery) error
 }
 
 type FiapApiClientCreator func(settings *FiapDatasourceSettings) (FiapApiClient, error)

@@ -24,7 +24,7 @@ type MockClient struct {
 	actualArguments *fetchFuncArguments
 
 	checkHealthFunc        func() (*backend.CheckHealthResult, error)
-	fetchWithDateRangeFunc func(resp *backend.DataResponse, dataRange model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID) error
+	fetchWithDateRangeFunc func(resp *backend.DataResponse, dataRange model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID, query *backend.DataQuery) error
 }
 
 type fetchFuncArguments struct {
@@ -43,12 +43,12 @@ func createDefaultMockClient(settings *model.FiapDatasourceSettings) (model.Fiap
 				Message: "Data source is working",
 			}, nil
 		},
-		fetchWithDateRangeFunc: func(resp *backend.DataResponse, _ model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID) error {
+		fetchWithDateRangeFunc: func(resp *backend.DataResponse, _ model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID, query *backend.DataQuery) error {
 			for _, pointID := range pointIDs {
 				// create data frame response.
 				// For an overview on data frames and how grafana handles them:
 				// https://grafana.com/developers/plugin-tools/introduction/data-frames
-				frame := data.NewFrame("response")
+				frame := data.NewFrame(fmt.Sprintf("%s:%s", query.RefID, pointID.Value))
 
 				// add fields.
 				frame.Fields = append(frame.Fields,
@@ -68,14 +68,14 @@ func (cli *MockClient) CheckHealth() (*backend.CheckHealthResult, error) {
 	return cli.checkHealthFunc()
 }
 
-func (cli *MockClient) FetchWithDateRange(resp *backend.DataResponse, dataRange model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID) error {
+func (cli *MockClient) FetchWithDateRange(resp *backend.DataResponse, dataRange model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID, query *backend.DataQuery) error {
 	cli.actualArguments = &fetchFuncArguments{
 		dataRange: dataRange,
 		fromTime:  fromTime,
 		toTime:    toTime,
 		pointIDs:  pointIDs,
 	}
-	return cli.fetchWithDateRangeFunc(resp, dataRange, fromTime, toTime, pointIDs)
+	return cli.fetchWithDateRangeFunc(resp, dataRange, fromTime, toTime, pointIDs, query)
 }
 
 func TestNewDatasource(t *testing.T) {
@@ -138,12 +138,12 @@ func TestQueryData(t *testing.T) {
 		checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 			return nil, errors.New("not expected to call this function")
 		},
-		fetchWithDateRangeFunc: func(resp *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, pointIDs []model.PointID) error {
+		fetchWithDateRangeFunc: func(resp *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, pointIDs []model.PointID, query *backend.DataQuery) error {
 			for _, pointID := range pointIDs {
 				// create data frame response.
 				// For an overview on data frames and how grafana handles them:
 				// https://grafana.com/developers/plugin-tools/introduction/data-frames
-				frame := data.NewFrame("response")
+				frame := data.NewFrame(fmt.Sprintf("%s:%s", query.RefID, pointID.Value))
 
 				// add fields.
 				frame.Fields = append(frame.Fields,
@@ -384,7 +384,7 @@ func TestQueryData(t *testing.T) {
 				checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 					return nil, errors.New("not expected to call this function")
 				},
-				fetchWithDateRangeFunc: func(_ *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, _ []model.PointID) error {
+				fetchWithDateRangeFunc: func(_ *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, _ []model.PointID, _ *backend.DataQuery) error {
 					return errors.New("test fetch error")
 				},
 			}}
@@ -428,7 +428,7 @@ func TestCheckHealth(t *testing.T) {
 					Message: "Data source is working",
 				}, nil
 			},
-			fetchWithDateRangeFunc: func(resp *backend.DataResponse, _ model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID) error {
+			fetchWithDateRangeFunc: func(_ *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, _ []model.PointID, _ *backend.DataQuery) error {
 				return errors.New("not expected to call this function")
 			},
 		}}
@@ -450,7 +450,7 @@ func TestCheckHealth(t *testing.T) {
 					Message: "Data source is not working",
 				}, nil
 			},
-			fetchWithDateRangeFunc: func(resp *backend.DataResponse, _ model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID) error {
+			fetchWithDateRangeFunc: func(_ *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, _ []model.PointID, _ *backend.DataQuery) error {
 				return errors.New("not expected to call this function")
 			},
 		}}
@@ -469,7 +469,7 @@ func TestCheckHealth(t *testing.T) {
 			checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 				return nil, errors.New("test unexpected error")
 			},
-			fetchWithDateRangeFunc: func(resp *backend.DataResponse, _ model.DataRangeType, fromTime *time.Time, toTime *time.Time, pointIDs []model.PointID) error {
+			fetchWithDateRangeFunc: func(_ *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, _ []model.PointID, _ *backend.DataQuery) error {
 				return errors.New("not expected to call this function")
 			},
 		}}

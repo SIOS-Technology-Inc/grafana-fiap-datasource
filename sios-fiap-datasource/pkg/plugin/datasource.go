@@ -67,7 +67,7 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 
 	// loop over queries and execute them individually.
 	for _, q := range req.Queries {
-		res := d.query(ctx, req.PluginContext, q)
+		res := d.query(ctx, req.PluginContext, &q)
 
 		// save the response in a hashmap
 		// based on with RefID as identifier
@@ -79,7 +79,7 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 	return response, nil
 }
 
-func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
+func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query *backend.DataQuery) backend.DataResponse {
 	log.DefaultLogger.Info("Start handle query", "method", "query", "refID", query.RefID)
 	log.DefaultLogger.Debug("Start handle query (more info)", "query", query)
 	var response backend.DataResponse
@@ -106,7 +106,7 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 
 	log.DefaultLogger.Info("Start fetch point data", "connectionURL", d.Settings.Url, "pointIDs", qm.PointIDs)
 	log.DefaultLogger.Debug("Start fetch point data (more info)", "dataRange", qm.DataRange, "fromTime", fromTime, "toTime", toTime)
-	err := d.Client.FetchWithDateRange(&response, qm.DataRange, fromTime, toTime, qm.PointIDs)
+	err := d.Client.FetchWithDateRange(&response, qm.DataRange, fromTime, toTime, qm.PointIDs, query)
 	if err != nil {
 		log.DefaultLogger.Error("Error fetch point data", "json", query.JSON, "error", err)
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("fiap fetch: %v", err.Error()))
