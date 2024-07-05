@@ -34,86 +34,51 @@ describe('ConfigEditor', () => {
   describe('url validation test', () => {
     describe('when url is empty in the initial state', () => {
       it('should show error message', async () => {
-        render(
-          <ConfigEditor
-            onOptionsChange={onOptionsChange}
-            options={testOptions}
-          />
-        );
+        render(<ConfigEditor onOptionsChange={onOptionsChange} options={testOptions} />);
 
-        waitFor(() => {
-          expect(screen.getByText('This field is required')).toBeInTheDocument();
+        await waitFor(() => {
+          expect(screen.queryByText('This field is required')).toBeInTheDocument();
         });
       });
     });
     describe('when url is empty after input', () => {
       it('should show error message', async () => {
-        render(
-          <ConfigEditor
-            onOptionsChange={onOptionsChange}
-            options={testOptions}
-          />
-        );
+        render(<ConfigEditor onOptionsChange={onOptionsChange} options={testOptions} />);
 
         const input = screen.getByRole('textbox', { name: /url/i });
-        userEvent.type(input, 'http://test.server.com:8080');
-        userEvent.clear(input);
+        await userEvent.type(input, 'http://test.server.com:8080');
+        await userEvent.clear(input);
 
-        waitFor(() => {
-          expect(screen.getByText('This field is required')).toBeInTheDocument();
+        await waitFor(() => {
+          expect(screen.queryByText('This field is required')).toBeInTheDocument();
         });
       });
     });
     describe('when url is invalid', () => {
-      it('should show error message', async () => {
-        render(
-          <ConfigEditor
-            onOptionsChange={onOptionsChange}
-            options={testOptions}
-          />
-        );
-
+      const InputURLs = ['http://', 'https://', 'htt://a', ' http://a',' https://a']
+      it.each(InputURLs)('should show error message (input: %s)', async (inputURL) => {
         render(<ConfigEditor onOptionsChange={onOptionsChange} options={testOptions} />);
 
         const input = screen.getByRole('textbox', { name: /url/i });
-        userEvent.type(input, 'invalid-url');
+
+        await userEvent.type(input, inputURL);
         
-        waitFor(() => {
-          expect(screen.getByText('Invalid URL format.')).toBeInTheDocument();
+        await waitFor(() => {
+          expect(screen.queryByText('Invalid URL format.')).toBeInTheDocument();
         });
       });
     });
     describe('when url is valid', () => {
-      it('should not show error message', async () => {
-        render(
-          <ConfigEditor
-            onOptionsChange={onOptionsChange}
-            options={testOptions}
-          />
-        );
+      const InputURLs = ['http://a', 'https://a']
+      it.each(InputURLs)('should show error message (input: %s)', async (inputURL) => {
+        render(<ConfigEditor onOptionsChange={onOptionsChange} options={testOptions} />);
 
         const input = screen.getByRole('textbox', { name: /url/i });
-        userEvent.type(input, 'http://test.server.com:8080');
 
-        waitFor(() => {
+        await userEvent.type(input, inputURL);
+        
+        await waitFor(() => {
           expect(screen.queryByText('Invalid URL format.')).not.toBeInTheDocument();
-        });
-      });
-      describe('when url is valid', () => {
-        it('should not show error message', async () => {
-          render(
-            <ConfigEditor
-              onOptionsChange={onOptionsChange}
-              options={testOptions}
-            />
-          );
-  
-          const input = screen.getByRole('textbox', { name: /url/i });
-          userEvent.type(input, 'https://a');
-  
-          waitFor(() => {
-            expect(screen.queryByText('Invalid URL format.')).not.toBeInTheDocument();
-          });
         });
       });
     });

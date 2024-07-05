@@ -94,6 +94,7 @@ export function QueryEditor({ query, onChange }: Props) {
                         field.onChange(e);
                         onChange({ ...query, point_ids: pointIds})
                       }}
+                      data-testid={`point-${index}`}
                     />
                   </InlineField>
                 )}
