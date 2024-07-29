@@ -84,7 +84,7 @@ export function QueryEditor({ query, onChange }: Props) {
                 control={control}
                 rules={pointValidationRule}
                 render={({ field , fieldState:{ error } }) => (
-                  <InlineField label="point" labelWidth={16} invalid={Boolean(error)} error={error?.message}>
+                  <InlineField label="Point ID" labelWidth={16} invalid={Boolean(error)} error={error?.message}>
                     <Input
                       id={`point-${index}`}
                       width={52}
@@ -125,7 +125,7 @@ export function QueryEditor({ query, onChange }: Props) {
         );
       })}
       <InlineFieldRow>
-        <InlineField label="Data Range" labelWidth={16}>
+        <InlineField label="Data range" labelWidth={16}>
           <Controller
             name="data_range"
             control={control}
@@ -156,7 +156,7 @@ export function QueryEditor({ query, onChange }: Props) {
           control={control}
           rules={{ validate: isValidDateTime }}
           render={({ field, fieldState: { error } }) => (
-            <InlineField label="Start" labelWidth={16} invalid={Boolean(error)} error={error && error.message}>
+            <InlineField label="Start time" labelWidth={16} tooltip={"It uses server timezone from datasource settings."} invalid={Boolean(error)} error={error && error.message}>
             <div style={{ pointerEvents: startLinkDashboards ? 'none' : 'auto', opacity: startLinkDashboards ? 0.4 : 1 }}>
               <Input
                 id={`start_time`}
@@ -194,7 +194,7 @@ export function QueryEditor({ query, onChange }: Props) {
                 control={control}
                 rules={{ validate: isValidDateTime }}
                 render={({ field ,fieldState:{ error }}) => (
-                  <InlineField label="End" labelWidth={16} invalid={Boolean(error)} error={error && error.message}>
+                  <InlineField label="End time" labelWidth={16} tooltip={"It uses server timezone from datasource settings."} invalid={Boolean(error)} error={error && error.message}>
                   <div style={{ pointerEvents: endLinkDashboards ? 'none' : 'auto', opacity: endLinkDashboards ? 0.4 : 1 }}>
                   <Input
                     id={`end_time`}

@@ -22,7 +22,8 @@ describe('ConfigEditor', () => {
     "withCredentials": false,
     "isDefault": true,
     "jsonData": {
-      "url": ""
+      "url": "",
+      "server_timezone": ""
     },
     "secureJsonFields": {},
     "version": 25,
@@ -79,6 +80,45 @@ describe('ConfigEditor', () => {
         
         await waitFor(() => {
           expect(screen.queryByText('Invalid URL format.')).not.toBeInTheDocument();
+        });
+      });
+    });
+  });
+  describe('server timezone validation test', () => {
+    describe('when server timezone is empty in the initial state', () => {
+      it('should not show error message', async () => {
+        render(<ConfigEditor onOptionsChange={onOptionsChange} options={testOptions} />);
+
+        await waitFor(() => {
+          expect(screen.queryByText('Invalid timezone format. Please use the format ±HH:MM. For example, +09:00 or -05:30.')).not.toBeInTheDocument();
+        });
+      });
+    });
+    describe('when server timezone is invalid', () => {
+      const InputTimezones = ['+0012', '-0012', '+13:00', '-13:00', '+00:60', '-00:60', '+00:0', '-00:0', '+0:00', '-0:00', '+0:0', '-0:0','+12','-12']
+      it.each(InputTimezones)('should show error message (input: %s)', async (inputTimezone) => {
+        render(<ConfigEditor onOptionsChange={onOptionsChange} options={testOptions} />);
+
+        const input = screen.getByRole('textbox', { name: /server timezone/i });
+
+        await userEvent.type(input, inputTimezone);
+        
+        await waitFor(() => {
+          expect(screen.queryByText('Invalid timezone format. Please use the format ±HH:MM. For example, +09:00 or -05:30.')).toBeInTheDocument();
+        });
+      });
+    });
+    describe('when server timezone is valid', () => {
+      const InputTimezones = ['+00:00', '-00:00', '+12:59', '-12:59', '+00:30', '-00:30', '+09:00', '-09:00', '+05:30', '-05:30']
+      it.each(InputTimezones)('should not show error message (input: %s)', async (inputTimezone) => {
+        render(<ConfigEditor onOptionsChange={onOptionsChange} options={testOptions} />);
+
+        const input = screen.getByRole('textbox', { name: /server timezone/i });
+
+        await userEvent.type(input, inputTimezone);
+        
+        await waitFor(() => {
+          expect(screen.queryByText('Invalid timezone format. Please use the format ±HH:MM. For example, +09:00 or -05:30.')).not.toBeInTheDocument();
         });
       });
     });

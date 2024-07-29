@@ -26,4 +26,5 @@ export const DEFAULT_QUERY: Partial<MyQuery> = {
  */
 export interface MyDataSourceOptions extends DataSourceJsonData {
   url: string;
+  server_timezone: string;
 }
