@@ -91,10 +91,18 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
 	}
 
+	var serverTimezone *time.Location
+	if tz, err := d.Settings.GetLocation(); err == nil {
+		serverTimezone = tz
+	} else {
+		log.DefaultLogger.Error("Error parse server timezone in settings", "timezone", d.Settings.ServerTimezone, "error", err)
+		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("server timezone parse: %v", err.Error()))
+	}
 	var fromTime *time.Time
 	if qm.StartTime.LinkDashboard {
-		fromTime = &query.TimeRange.From
-	} else if dt, err := qm.StartTime.GetTime(""); err == nil {
+		dt := query.TimeRange.From.In(serverTimezone)
+		fromTime = &dt
+	} else if dt, err := qm.StartTime.GetTime(d.Settings.ServerTimezone); err == nil {
 		fromTime = dt
 	} else {
 		log.DefaultLogger.Error("Error parse start time in query", "time", qm.StartTime.RawTime, "error", err)
@@ -102,8 +110,9 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 	}
 	var toTime *time.Time
 	if qm.EndTime.LinkDashboard {
-		toTime = &query.TimeRange.To
-	} else if dt, err := qm.EndTime.GetTime(""); err == nil {
+		dt := query.TimeRange.To.In(serverTimezone)
+		toTime = &dt
+	} else if dt, err := qm.EndTime.GetTime(d.Settings.ServerTimezone); err == nil {
 		toTime = dt
 	} else {
 		log.DefaultLogger.Error("Error parse end time in query", "time", qm.EndTime.RawTime, "error", err)
