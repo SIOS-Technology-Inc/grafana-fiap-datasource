@@ -94,14 +94,20 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 	var fromTime *time.Time
 	if qm.StartTime.LinkDashboard {
 		fromTime = &query.TimeRange.From
+	} else if dt, err := qm.StartTime.GetTime(""); err == nil {
+		fromTime = dt
 	} else {
-		fromTime = qm.StartTime.FixedTime
+		log.DefaultLogger.Error("Error parse start time in query", "time", qm.StartTime.RawTime, "error", err)
+		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("start time parse: %v", err.Error()))
 	}
 	var toTime *time.Time
 	if qm.EndTime.LinkDashboard {
 		toTime = &query.TimeRange.To
+	} else if dt, err := qm.EndTime.GetTime(""); err == nil {
+		toTime = dt
 	} else {
-		toTime = qm.EndTime.FixedTime
+		log.DefaultLogger.Error("Error parse end time in query", "time", qm.EndTime.RawTime, "error", err)
+		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("end time parse: %v", err.Error()))
 	}
 
 	log.DefaultLogger.Info("Start fetch point data", "connectionURL", d.Settings.Url, "pointIDs", qm.PointIDs)

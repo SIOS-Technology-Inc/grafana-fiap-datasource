@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -23,28 +22,20 @@ const Latest DataRangeType = "latest"
 const Oldest DataRangeType = "oldest"
 
 type LinkedTime struct {
-	FixedTime     *time.Time
-	LinkDashboard bool
+	RawTime       string `json:"time"`
+	LinkDashboard bool   `json:"link_dashboard"`
 }
 
 const frontendDatetimeLayout = "2006-01-02 15:04:05"
 
-func (l *LinkedTime) UnmarshalJSON(b []byte) error {
-	var r struct {
-		FixedTime     string `json:"time"`
-		LinkDashboard bool   `json:"link_dashboard"`
-	}
-	if err := json.Unmarshal(b, &r); err != nil {
-		return err
-	}
-
-	if r.FixedTime == "" {
-		l.FixedTime = nil
-	} else if dt, err := time.Parse(frontendDatetimeLayout, r.FixedTime); err == nil {
-		l.FixedTime = &dt
+func (l *LinkedTime) GetTime(_ string) (*time.Time, error) {
+	if l.RawTime == "" {
+		return nil, nil
 	} else {
-		return err
+		if dt, err := time.Parse(frontendDatetimeLayout, l.RawTime); err == nil {
+			return &dt, nil
+		} else {
+			return nil, err
+		}
 	}
-	l.LinkDashboard = r.LinkDashboard
-	return nil
 }

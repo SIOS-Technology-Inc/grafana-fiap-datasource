@@ -378,6 +378,64 @@ func TestQueryData(t *testing.T) {
 				t.Errorf("expected error is %s but %s", "json unmarshal", respA.Error.Error())
 			}
 		})
+		t.Run("InvalidTime", func(t *testing.T) {
+			t.Run("Start", func(t *testing.T) {
+				resp, err := ds.QueryData(
+					context.Background(),
+					&backend.QueryDataRequest{
+						Queries: []backend.DataQuery{
+							{
+								RefID: "A",
+								JSON:  []byte(`{"point_ids":[{"point_id":"id_b"}],"data_range":"latest","start_time":{"time":"2024-06-01","link_dashboard":false},"end_time":{"time":"2024-06-30 23:59:59","link_dashboard":false}}`),
+								TimeRange: backend.TimeRange{
+									From: time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC),
+									To:   time.Date(2024, 3, 31, 23, 59, 59, 0, time.UTC),
+								},
+							},
+						},
+					},
+				)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(resp.Responses) != 1 {
+					t.Error("QueryData must return just one response")
+				}
+				if respA, ok := resp.Responses["A"]; !ok {
+					t.Errorf("QueryData must return response of RefID '%s'", "A")
+				} else if !strings.Contains(respA.Error.Error(), "start time parse") {
+					t.Errorf("expected error is %s but %s", "start time parse", respA.Error.Error())
+				}
+			})
+			t.Run("End", func(t *testing.T) {
+				resp, err := ds.QueryData(
+					context.Background(),
+					&backend.QueryDataRequest{
+						Queries: []backend.DataQuery{
+							{
+								RefID: "A",
+								JSON:  []byte(`{"point_ids":[{"point_id":"id_b"}],"data_range":"latest","start_time":{"time":"2024-06-01 00:00:00","link_dashboard":false},"end_time":{"time":"2024/06/30T23:59:59","link_dashboard":false}}`),
+								TimeRange: backend.TimeRange{
+									From: time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC),
+									To:   time.Date(2024, 3, 31, 23, 59, 59, 0, time.UTC),
+								},
+							},
+						},
+					},
+				)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if len(resp.Responses) != 1 {
+					t.Error("QueryData must return just one response")
+				}
+				if respA, ok := resp.Responses["A"]; !ok {
+					t.Errorf("QueryData must return response of RefID '%s'", "A")
+				} else if !strings.Contains(respA.Error.Error(), "end time parse") {
+					t.Errorf("expected error is %s but %s", "end time parse", respA.Error.Error())
+				}
+			})
+		})
 		t.Run("FetchFailed", func(t *testing.T) {
 			ds := Datasource{Client: &MockClient{
 				ConnectionURL: "http://test.url:12345",
