@@ -19,8 +19,6 @@ var (
 )
 
 type MockClient struct {
-	ConnectionURL string
-
 	actualArguments *fetchFuncArguments
 
 	checkHealthFunc        func() (*backend.CheckHealthResult, error)
@@ -36,7 +34,6 @@ type fetchFuncArguments struct {
 
 func createDefaultMockClient(settings *model.FiapDatasourceSettings) (model.FiapApiClient, error) {
 	return &MockClient{
-		ConnectionURL: settings.Url,
 		checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 			return &backend.CheckHealthResult{
 				Status:  backend.HealthStatusOk,
@@ -84,8 +81,9 @@ func TestNewDatasource(t *testing.T) {
 		createClient = createDefaultMockClient
 
 		expectedURL := "http://test.url:12345"
+		expectedTimezone := "+09:00"
 		inst, err := NewDatasource(context.Background(), backend.DataSourceInstanceSettings{
-			JSONData: []byte(fmt.Sprintf("{\"url\":\"%s\"}", expectedURL)),
+			JSONData: []byte(fmt.Sprintf(`{"url":"%s","server_timezone":"%s"}`, expectedURL, expectedTimezone)),
 		})
 		if err != nil {
 			t.Error("failed to create new datasource")
@@ -104,7 +102,7 @@ func TestNewDatasource(t *testing.T) {
 			createClient = createDefaultMockClient
 
 			inst, err := NewDatasource(context.TODO(), backend.DataSourceInstanceSettings{
-				JSONData: []byte("{\"url\":\"ht"),
+				JSONData: []byte(`{"url":"ht`),
 			})
 			if inst != nil {
 				t.Error("NewDatasource must not return new datasource")
@@ -118,8 +116,9 @@ func TestNewDatasource(t *testing.T) {
 			}
 
 			expectedURL := "http://test.url:12345"
+			expectedTimezone := "+09:00"
 			inst, err := NewDatasource(context.TODO(), backend.DataSourceInstanceSettings{
-				JSONData: []byte(fmt.Sprintf("{\"url\":\"%s\"}", expectedURL)),
+				JSONData: []byte(fmt.Sprintf(`{"url":"%s","server_timezone":"%s"}`, expectedURL, expectedTimezone)),
 			})
 			if inst != nil {
 				t.Error("NewDatasource must not return new datasource")
@@ -134,7 +133,6 @@ func TestNewDatasource(t *testing.T) {
 
 func TestQueryData(t *testing.T) {
 	ds := Datasource{Client: &MockClient{
-		ConnectionURL: "http://test.url:12345",
 		checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 			return nil, errors.New("not expected to call this function")
 		},
@@ -156,6 +154,9 @@ func TestQueryData(t *testing.T) {
 
 			return nil
 		},
+	}, Settings: model.FiapDatasourceSettings{
+		Url:            "http://test.url:12345",
+		ServerTimezone: "+09:00",
 	}}
 	t.Run("Normal", func(t *testing.T) {
 		t.Run("EmptyTimeQuery", func(t *testing.T) {
@@ -193,10 +194,10 @@ func TestQueryData(t *testing.T) {
 					t.Errorf("expected datarange is %s but %s", "period", cli.actualArguments.dataRange)
 				}
 				if cli.actualArguments.fromTime != nil {
-					t.Errorf("expected fromTime is nil but %s", cli.actualArguments.fromTime.Format("2006-01-02 15:04:05"))
+					t.Errorf("expected fromTime is nil but %s", cli.actualArguments.fromTime.Format("2006-01-02 15:04:05 -07:00"))
 				}
 				if cli.actualArguments.toTime != nil {
-					t.Errorf("expected toTime is nil but %s", cli.actualArguments.toTime.Format("2006-01-02 15:04:05"))
+					t.Errorf("expected toTime is nil but %s", cli.actualArguments.toTime.Format("2006-01-02 15:04:05 -07:00"))
 				}
 				if len(cli.actualArguments.pointIDs) != 1 {
 					t.Errorf("expected pointIDs' length is %d but %d", 1, len(cli.actualArguments.pointIDs))
@@ -240,14 +241,14 @@ func TestQueryData(t *testing.T) {
 					t.Errorf("expected datarange is %s but %s", "latest", cli.actualArguments.dataRange)
 				}
 				if cli.actualArguments.fromTime == nil {
-					t.Errorf("expected fromTime is %s but nil", "2024-06-01 00:00:00")
+					t.Errorf("expected fromTime is %s but nil", "2024-06-01 00:00:00 +00:00")
 				} else if !cli.actualArguments.fromTime.Equal(time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)) {
-					t.Errorf("expected fromTime is %s but %s", "2024-06-01 00:00:00", cli.actualArguments.fromTime.Format("2006-01-02 15:04:05"))
+					t.Errorf("expected fromTime is %s but %s", "2024-06-01 00:00:00 +00:00", cli.actualArguments.fromTime.Format("2006-01-02 15:04:05 -07:00"))
 				}
 				if cli.actualArguments.toTime == nil {
-					t.Errorf("expected toTime is %s but nil", "2024-06-30 23:59:59")
+					t.Errorf("expected toTime is %s but nil", "2024-06-30 23:59:59 +00:00")
 				} else if !cli.actualArguments.toTime.Equal(time.Date(2024, 6, 30, 23, 59, 59, 0, time.UTC)) {
-					t.Errorf("expected toTime is %s but %s", "2024-06-30 23:59:59", cli.actualArguments.toTime.Format("2006-01-02 15:04:05"))
+					t.Errorf("expected toTime is %s but %s", "2024-06-30 23:59:59 +00:00", cli.actualArguments.toTime.Format("2006-01-02 15:04:05 -07:00"))
 				}
 				if len(cli.actualArguments.pointIDs) != 1 {
 					t.Errorf("expected pointIDs' length is %d but %d", 1, len(cli.actualArguments.pointIDs))
@@ -291,14 +292,14 @@ func TestQueryData(t *testing.T) {
 					t.Errorf("expected datarange is %s but %s", "oldest", cli.actualArguments.dataRange)
 				}
 				if cli.actualArguments.fromTime == nil {
-					t.Errorf("expected fromTime is %s but nil", "2024-03-01 00:00:00")
+					t.Errorf("expected fromTime is %s but nil", "2024-03-01 00:00:00 +00:00")
 				} else if !cli.actualArguments.fromTime.Equal(time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)) {
-					t.Errorf("expected fromTime is %s but %s", "2024-03-01 00:00:00", cli.actualArguments.fromTime.Format("2006-01-02 15:04:05"))
+					t.Errorf("expected fromTime is %s but %s", "2024-03-01 00:00:00 +00:00", cli.actualArguments.fromTime.Format("2006-01-02 15:04:05 -07:00"))
 				}
 				if cli.actualArguments.toTime == nil {
-					t.Errorf("expected toTime is %s but nil", "2024-03-31 23:59:59")
+					t.Errorf("expected toTime is %s but nil", "2024-03-31 23:59:59 +00:00")
 				} else if !cli.actualArguments.toTime.Equal(time.Date(2024, 3, 31, 23, 59, 59, 0, time.UTC)) {
-					t.Errorf("expected toTime is %s but %s", "2024-03-31 23:59:59", cli.actualArguments.toTime.Format("2006-01-02 15:04:05"))
+					t.Errorf("expected toTime is %s but %s", "2024-03-31 23:59:59 +00:00", cli.actualArguments.toTime.Format("2006-01-02 15:04:05 -07:00"))
 				}
 				if len(cli.actualArguments.pointIDs) != 1 {
 					t.Errorf("expected pointIDs' length is %d but %d", 1, len(cli.actualArguments.pointIDs))
@@ -438,13 +439,15 @@ func TestQueryData(t *testing.T) {
 		})
 		t.Run("FetchFailed", func(t *testing.T) {
 			ds := Datasource{Client: &MockClient{
-				ConnectionURL: "http://test.url:12345",
 				checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 					return nil, errors.New("not expected to call this function")
 				},
 				fetchWithDateRangeFunc: func(_ *backend.DataResponse, _ model.DataRangeType, _ *time.Time, _ *time.Time, _ []model.PointID, _ *backend.DataQuery) error {
 					return errors.New("test fetch error")
 				},
+			}, Settings: model.FiapDatasourceSettings{
+				Url:            "http://test.url:12345",
+				ServerTimezone: "+09:00",
 			}}
 			resp, err := ds.QueryData(
 				context.Background(),
@@ -479,7 +482,6 @@ func TestQueryData(t *testing.T) {
 func TestCheckHealth(t *testing.T) {
 	t.Run("StatusOk", func(t *testing.T) {
 		ds := Datasource{Client: &MockClient{
-			ConnectionURL: "http://test.url:12345",
 			checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 				return &backend.CheckHealthResult{
 					Status:  backend.HealthStatusOk,
@@ -501,7 +503,6 @@ func TestCheckHealth(t *testing.T) {
 	})
 	t.Run("StatusError", func(t *testing.T) {
 		ds := Datasource{Client: &MockClient{
-			ConnectionURL: "http://test.url:12345",
 			checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 				return &backend.CheckHealthResult{
 					Status:  backend.HealthStatusError,
@@ -523,7 +524,6 @@ func TestCheckHealth(t *testing.T) {
 	})
 	t.Run("UnexpectedError", func(t *testing.T) {
 		ds := Datasource{Client: &MockClient{
-			ConnectionURL: "http://test.url:12345",
 			checkHealthFunc: func() (*backend.CheckHealthResult, error) {
 				return nil, errors.New("test unexpected error")
 			},
