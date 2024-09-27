@@ -11,7 +11,7 @@ services:
       - 3000:3000/tcp
     volumes:
       - type: bind
-        source: "../sios-fiap-datasource/dist"
+        source: "../dist"
         target: "/var/lib/grafana/plugins/sios-fiap-datasource"
     environment:
       - GF_DEFAULT_APP_MODEL=development
