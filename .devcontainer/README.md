@@ -29,16 +29,15 @@ devcontainer の詳細については、[devcontainer を使用した開発に�
 ## grafana plugin 開発での操作
 
 - [gf-dev container]を起動し、新たなターミナルを開くと、コンテナ内の /workspace ディレクトリが開く。
-- `cd sios-fiap-datasource`コマンドで、grafana plguin 開発用作業ディレクトリへ移動する。
 
 ### Grafanaへのアクセス
 
-ビルドしたバイナリを配置し、動作させるGrafanaへのアクセスは、`localhost:3000`で行う。
+GrafanaコンテナのUIへのアクセスは、`localhost:3000`で行う。ここでプラグインの動作確認を行う。
 
 ### 開発時の操作
 
 フロントエンドとバックエンドのビルドを行うためのコマンドは以下の通り。
-※ビルドを Grafana に反映させるためには、grafana の service を再起動する必要がある。
+※ビルドを Grafana に反映させるためには、grafanaのコンテナを再起動する必要がある。
 
 ```bash
 # 依存関係のインストール
@@ -53,8 +52,8 @@ mage -v build:linux
 
 ### Grafana の再起動方法
 
-docker-compose.yml の存在するディレクトリで、外部のターミナルから`docker compose restart grafana`を実行。  
-ビルド後に、この作業を行うことで、Grafanaに変更が反映される。
+dockerを操作可能な外部のターミナルでdocker-compose.yml の存在するディレクトリへ移動し、`docker compose restart grafana`を実行。  
+ビルド後に、この作業を行うことで、Grafanaにプラグインの変更が反映される。
 
 ## コンテナの構成についての説明
 
