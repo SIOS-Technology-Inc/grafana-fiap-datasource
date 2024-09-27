@@ -7,7 +7,7 @@
   "backend": true,
   "executable": "gpx_fiap",
   "info": {
-    "description": "This is a grafana data source that uses ieee1888",
+    "description": "This is a grafana data source that uses ieee1888(a.k.a FIAP)",
     "author": {
       "name": "Sios"
     },

@@ -50,6 +50,8 @@ npm run build
 mage -v build:linux
 ```
 
+※ビルドを行うと/distフォルダが書き換えられ、.gitkeepというフォルダが削除されるが、コンテナを正常に起動させるためにgithub上に.gitkeepを保持しているため、この変更はコミットしない。
+
 ### Grafana の再起動方法
 
 dockerを操作可能な外部のターミナルでdocker-compose.yml の存在するディレクトリへ移動し、`docker compose restart grafana`を実行。  

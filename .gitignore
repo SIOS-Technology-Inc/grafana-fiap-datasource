@@ -6,7 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Node.js dependencies
 node_modules/
+npm-debug.log
 
 # Runtime data
 pids
@@ -38,3 +40,18 @@ e2e-results/
 !dist/
 dist/*
 !dist/.gitkeep
+
+# Go artifacts
+*.exe
+*.test
+*.out
+
+# Ignore .env files
+.env
+
+# Ignore Jest coverage
+coverage
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
