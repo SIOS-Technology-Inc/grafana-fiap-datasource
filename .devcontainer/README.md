@@ -24,21 +24,20 @@ devcontainer の詳細については、[devcontainer を使用した開発に�
   ![リモートコンテナに接続するメニューを開く様子のキャプチャ](./images/vscode-capture-open-remote-menu.png)
 - 次に、[コンテナーで再度開く] を押下する。
   ![コンテナで再度開く](./images/image.png)
-- すると、以下のようにどのコンテナーの中に入るかを選択するメニューが表示される。プラグインの開発環境である[gf-dev container]と、grafana のコンテナである[grafana container]が表示されるので、[gf-dev container]を選択し、開発環境の内部に入る。
-- ![コンテナの選択](./images/image-1.png)
-
-**Grafanaのコンテナに入る手順**
-- 上記の手順と同様にコンテナを選択する画面まで作業し、[grafana container] を選択する。
+- すると、プラグインの開発環境である[gf-dev container]と、grafana のコンテナである[grafana container]が起動し、開発環境[gf-dev container]の内部に入る。
 
 ## grafana plugin 開発での操作
 
-- [gf-dev container]を起動し、新たなターミナルを開くと、コンテナ内の/app ディレクトリが開く。
-- `cd sios-fiap-datasource`コマンドで、grafana plguin 開発用作業ディレクトリへ移動する。
+- [gf-dev container]を起動し、新たなターミナルを開くと、コンテナ内の /workspace ディレクトリが開く。
+
+### Grafanaへのアクセス
+
+GrafanaコンテナのUIへのアクセスは、`localhost:3000`で行う。ここでプラグインの動作確認を行う。
 
 ### 開発時の操作
 
 フロントエンドとバックエンドのビルドを行うためのコマンドは以下の通り。
-※ビルドを Grafana に反映させるためには、grafana の service を再起動する必要がある。
+※ビルドを Grafana に反映させるためには、grafanaのコンテナを再起動する必要がある。
 
 ```bash
 # 依存関係のインストール
@@ -51,9 +50,12 @@ npm run build
 mage -v build:linux
 ```
 
+※ビルドを行うと/distフォルダが書き換えられ、.gitkeepというフォルダが削除されるが、コンテナを正常に起動させるためにgithub上に.gitkeepを保持しているため、この変更はコミットしない。
+
 ### Grafana の再起動方法
 
-docker-compose.yml の存在するディレクトリで、ターミナルから`docker compose restart grafana`を実行。
+dockerを操作可能な外部のターミナルでdocker-compose.yml の存在するディレクトリへ移動し、`docker compose restart grafana`を実行。  
+ビルド後に、この作業を行うことで、Grafanaにプラグインの変更が反映される。
 
 ## コンテナの構成についての説明
 
