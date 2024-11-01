@@ -1,22 +1,22 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
-  "name": "Fiap",
-  "id": "sios-fiap-datasource",
+  "name": "fiap",
+  "id": "siostech-fiap-datasource",
   "metrics": true,
   "backend": true,
   "executable": "gpx_fiap",
   "info": {
     "description": "This is a grafana data source that uses ieee1888(a.k.a FIAP)",
     "author": {
-      "name": "Sios"
+      "name": "SIOS"
     },
-    "keywords": ["datasource"],
+    "keywords": ["datasource", "fiap", "ieee1888"],
     "logos": {
       "small": "img/fiap.png",
       "large": "img/fiap.png"
     },
-    "links": [],
+    "links": [{"name": "github", "url": "https://github.com/SIOS-Technology-Inc/grafana-fiap-datasource"}],
     "screenshots": [],
     "version": "%VERSION%",
     "updated": "%TODAY%"
