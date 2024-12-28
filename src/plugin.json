@@ -17,7 +17,7 @@
       "large": "img/fiap.png"
     },
     "links": [{"name": "github", "url": "https://github.com/SIOS-Technology-Inc/grafana-fiap-datasource"}],
-    "screenshots": [{"name": "datasource", "path": "https://github.com/SIOS-Technology-Inc/grafana-fiap-datasource/blob/main/src/img/settings.png"},{"name": "query", "path": "https://github.com/SIOS-Technology-Inc/grafana-fiap-datasource/blob/main/src/img/query.png"}],
+    "screenshots": [{"name": "datasource", "path": "img/settings.png"},{"name": "query", "path": "img/query.png"}],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
