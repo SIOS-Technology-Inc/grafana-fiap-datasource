@@ -17,7 +17,7 @@
       "large": "img/fiap.png"
     },
     "links": [{"name": "github", "url": "https://github.com/SIOS-Technology-Inc/grafana-fiap-datasource"}],
-    "screenshots": [],
+    "screenshots": [{"name": "datasource", "path": "img/settings.png"},{"name": "query", "path": "img/query.png"}],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
