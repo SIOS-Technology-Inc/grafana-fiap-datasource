@@ -6,8 +6,7 @@ This is a grafana data source that uses IEEE1888 (a.k.a. FIAP in Japan).
 
 ### Datasource Settings
 
-![DatasourceSettings](img/settings.png)
-<!-- ![DatasourceSettings](https://github.com/SIOS-Technology-Inc/grafana-fiap-datasource/src/img/settings.png) -->
+![DatasourceSettings](https://github.com/user-attachments/assets/31c4432b-e029-4698-9114-b57139b30524)
 
 | Setting         | Detail                                                                                                       |
 | --------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -16,8 +15,7 @@ This is a grafana data source that uses IEEE1888 (a.k.a. FIAP in Japan).
 
 ### Query Settings
 
-![QuerySettings](img/query.png)
-<!--![QuerySettings](https://github.com/SIOS-Technology-Inc/grafana-fiap-datasource/src/img/query.png)  -->
+![QuerySettings](https://github.com/user-attachments/assets/65454b3e-b005-4b8d-ab0b-560ce79d00ed)
 
 | Setting                          | Detail                                                                                                                                                                                                                             |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
