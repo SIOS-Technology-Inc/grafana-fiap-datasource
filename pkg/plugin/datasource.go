@@ -60,7 +60,6 @@ func (d *Datasource) Dispose() {
 func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
 	ctxLogger := backend.Logger.FromContext(ctx)
 	ctxLogger.Info("Start QueryData in fiap datasource")
-	ctxLogger.Debug("Start handle queries", "request", req)
 
 	// create response struct
 	response := backend.NewQueryDataResponse()
@@ -78,7 +77,7 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 	return response, nil
 }
 
-func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query *backend.DataQuery) backend.DataResponse {
+func (d *Datasource) query(ctx context.Context, _ backend.PluginContext, query *backend.DataQuery) backend.DataResponse {
 	ctxLogger := backend.Logger.FromContext(ctx)
 	ctxLogger.Debug("Start handle query", "refID", query.RefID, "query", query)
 
@@ -134,10 +133,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 // The main use case for these health checks is the test button on the
 // datasource configuration page which allows users to verify that
 // a datasource is working as expected.
-func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+func (d *Datasource) CheckHealth(ctx context.Context, _ *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
 	ctxLogger := backend.Logger.FromContext(ctx)
 	ctxLogger.Info("Start CheckHealth in fiap datasource")
-	ctxLogger.Debug("Start health check", "request", req)
 
 	result, err := d.Client.CheckHealth()
 	if err != nil {
