@@ -59,7 +59,7 @@ func (d *Datasource) Dispose() {
 // contains Frames ([]*Frame).
 func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
 	ctxLogger := backend.Logger.FromContext(ctx)
-	ctxLogger.Info("Start QueryData in fiap datasource")
+	ctxLogger.Debug("Start QueryData in fiap datasource")
 
 	// create response struct
 	response := backend.NewQueryDataResponse()
@@ -135,7 +135,7 @@ func (d *Datasource) query(ctx context.Context, _ backend.PluginContext, query *
 // a datasource is working as expected.
 func (d *Datasource) CheckHealth(ctx context.Context, _ *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
 	ctxLogger := backend.Logger.FromContext(ctx)
-	ctxLogger.Info("Start CheckHealth in fiap datasource")
+	ctxLogger.Debug("Start CheckHealth in fiap datasource")
 
 	result, err := d.Client.CheckHealth()
 	if err != nil {
