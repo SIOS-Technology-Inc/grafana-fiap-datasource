@@ -12,7 +12,6 @@ import (
 	"github.com/SIOS-Technology-Inc/go-fiap-client/pkg/fiap"
 	"github.com/cockroachdb/errors"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 )
 
@@ -31,24 +30,23 @@ func CreateFiapApiClient(settings *dsmodel.FiapDatasourceSettings) (dsmodel.Fiap
 }
 
 func (cli *ClientImpl) CheckHealth() (*backend.CheckHealthResult, error) {
-	log.DefaultLogger.Info("Start to check health", "ConnectionURL", cli.Settings.Url)
+	backend.Logger.Debug("Start to check health", "connectionURL", cli.Settings.Url)
 	resp, err := http.Head(cli.Settings.Url)
 	if err != nil {
-		log.DefaultLogger.Error("Failed to check health", "error", err, "response", resp)
+		backend.Logger.Error("Failed to check health", "error", err, "response", resp)
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,
 			Message: "Failed to check health. Please see logs for details.",
 		}, nil
 	} else if resp.StatusCode > 299 {
-		log.DefaultLogger.Error("URL returns bad status code", "statusCode", resp.StatusCode, "response", resp)
+		backend.Logger.Error("URL returns bad status code", "statusCode", resp.StatusCode, "response", resp)
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,
 			Message: fmt.Sprintf("URL returns status code %d. Please see logs for details.", resp.StatusCode),
 		}, nil
 	}
 
-	log.DefaultLogger.Info("Succeed to check health", "statusCode", resp.StatusCode)
-	log.DefaultLogger.Debug("Succeed to check health (more info)", "response", resp)
+	backend.Logger.Debug("Succeed to check health", "statusCode", resp.StatusCode, "response", resp)
 	return &backend.CheckHealthResult{
 		Status:  backend.HealthStatusOk,
 		Message: "Data source is working",

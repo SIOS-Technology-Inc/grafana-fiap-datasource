@@ -10,7 +10,6 @@ import (
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -59,8 +58,8 @@ func (d *Datasource) Dispose() {
 // The QueryDataResponse contains a map of RefID to the response for each query, and each response
 // contains Frames ([]*Frame).
 func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataRequest) (*backend.QueryDataResponse, error) {
-	log.DefaultLogger.Info("Start handle queries", "method", "QueryData", "user", req.PluginContext.User, "pluginId", req.PluginContext.PluginID)
-	log.DefaultLogger.Debug("Start handle queries (more info)", "request", req)
+	ctxLogger := backend.Logger.FromContext(ctx)
+	ctxLogger.Debug("Start QueryData in fiap datasource")
 
 	// create response struct
 	response := backend.NewQueryDataResponse()
@@ -74,20 +73,20 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 		response.Responses[q.RefID] = res
 	}
 
-	log.DefaultLogger.Info("Finish handle queries", "method", "QueryData", "user", req.PluginContext.User, "pluginId", req.PluginContext.PluginID)
-	log.DefaultLogger.Debug("Finish handle queries (more info)", "response", response)
+	ctxLogger.Debug("Finish handle queries", "response", response)
 	return response, nil
 }
 
-func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query *backend.DataQuery) backend.DataResponse {
-	log.DefaultLogger.Info("Start handle query", "method", "query", "refID", query.RefID)
-	log.DefaultLogger.Debug("Start handle query (more info)", "query", query)
+func (d *Datasource) query(ctx context.Context, _ backend.PluginContext, query *backend.DataQuery) backend.DataResponse {
+	ctxLogger := backend.Logger.FromContext(ctx)
+	ctxLogger.Debug("Start handle query", "refID", query.RefID, "query", query)
+
 	var response backend.DataResponse
 
 	// Unmarshal the JSON into our query model.
 	var qm model.FiapQuery
 	if err := json.Unmarshal(query.JSON, &qm); err != nil {
-		log.DefaultLogger.Error("Error parse json queries", "json", query.JSON, "error", err)
+		ctxLogger.Error("Error parse json queries", "json", query.JSON, "error", err)
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
 	}
 
@@ -95,7 +94,7 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 	if tz, err := d.Settings.GetLocation(); err == nil {
 		serverTimezone = tz
 	} else {
-		log.DefaultLogger.Error("Error parse server timezone in settings", "timezone", d.Settings.ServerTimezone, "error", err)
+		ctxLogger.Error("Error parse server timezone in settings", "timezone", d.Settings.ServerTimezone, "error", err)
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("server timezone parse: %v", err.Error()))
 	}
 	var fromTime *time.Time
@@ -105,7 +104,7 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 	} else if dt, err := qm.StartTime.GetTime(d.Settings.ServerTimezone); err == nil {
 		fromTime = dt
 	} else {
-		log.DefaultLogger.Error("Error parse start time in query", "time", qm.StartTime.RawTime, "error", err)
+		ctxLogger.Error("Error parse start time in query", "time", qm.StartTime.RawTime, "error", err)
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("start time parse: %v", err.Error()))
 	}
 	var toTime *time.Time
@@ -115,21 +114,18 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 	} else if dt, err := qm.EndTime.GetTime(d.Settings.ServerTimezone); err == nil {
 		toTime = dt
 	} else {
-		log.DefaultLogger.Error("Error parse end time in query", "time", qm.EndTime.RawTime, "error", err)
+		ctxLogger.Error("Error parse end time in query", "time", qm.EndTime.RawTime, "error", err)
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("end time parse: %v", err.Error()))
 	}
 
-	log.DefaultLogger.Info("Start fetch point data", "connectionURL", d.Settings.Url, "pointIDs", qm.PointIDs)
-	log.DefaultLogger.Debug("Start fetch point data (more info)", "dataRange", qm.DataRange, "fromTime", fromTime, "toTime", toTime)
+	ctxLogger.Debug("Start fetch point data", "connectionURL", d.Settings.Url, "dataRange", qm.DataRange, "fromTime", fromTime, "toTime", toTime, "pointIDs", qm.PointIDs)
 	err := d.Client.FetchWithDateRange(&response, qm.DataRange, fromTime, toTime, qm.PointIDs, query)
 	if err != nil {
-		log.DefaultLogger.Error("Error fetch point data", "json", query.JSON, "error", err)
+		ctxLogger.Error("Error fetch point data", "json", query.JSON, "error", err)
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("fiap fetch: %v", err.Error()))
 	}
-	log.DefaultLogger.Info("Finish fetch point data normally")
 
-	log.DefaultLogger.Info("Finish handle query normally", "method", "query")
-	log.DefaultLogger.Debug("Finish handle query normally (more info)", "response", response)
+	ctxLogger.Debug("Finish handle query normally", "response", response)
 	return response
 }
 
@@ -137,17 +133,16 @@ func (d *Datasource) query(_ context.Context, pCtx backend.PluginContext, query 
 // The main use case for these health checks is the test button on the
 // datasource configuration page which allows users to verify that
 // a datasource is working as expected.
-func (d *Datasource) CheckHealth(_ context.Context, req *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
-	log.DefaultLogger.Info("Start health check", "method", "CheckHealth", "user", req.PluginContext.User, "pluginId", req.PluginContext.PluginID)
-	log.DefaultLogger.Debug("Start health check (more info)", "request", req)
+func (d *Datasource) CheckHealth(ctx context.Context, _ *backend.CheckHealthRequest) (*backend.CheckHealthResult, error) {
+	ctxLogger := backend.Logger.FromContext(ctx)
+	ctxLogger.Debug("Start CheckHealth in fiap datasource")
 
 	result, err := d.Client.CheckHealth()
 	if err != nil {
-		log.DefaultLogger.Error("Unexpected error in health check", "error", err)
+		ctxLogger.Error("Unexpected error in health check", "error", err)
 		return nil, err
 	}
 
-	log.DefaultLogger.Info("Finish health check normally", "method", "CheckHealth", "user", req.PluginContext.User, "pluginId", req.PluginContext.PluginID)
-	log.DefaultLogger.Debug("Finish health check normally (more info)", "Status", result.Status, "Message", result.Message)
+	ctxLogger.Debug("Finish health check normally", "Status", result.Status, "Message", result.Message)
 	return result, nil
 }

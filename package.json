@@ -1,6 +1,6 @@
 {
   "name": "fiap",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This is a grafana data source that uses ieee1888",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",

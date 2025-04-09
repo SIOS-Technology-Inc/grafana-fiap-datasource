@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/sios/fiap/pkg/plugin"
 )
 
@@ -18,7 +18,7 @@ func main() {
 	// ID). When datasource configuration changed Dispose method will be called and
 	// new datasource instance created using NewSampleDatasource factory.
 	if err := datasource.Manage("sios-fiap-datasource", plugin.NewDatasource, datasource.ManageOpts{}); err != nil {
-		log.DefaultLogger.Error(err.Error())
+		backend.Logger.Error("Error starting fiap plugin", "error", err.Error())
 		os.Exit(1)
 	}
 }

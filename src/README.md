@@ -1,51 +1,34 @@
-<!-- This README file is going to be the one displayed on the Grafana.com website for your plugin. Uncomment and replace the content here before publishing.
+# FIAP data source plugin for Grafana
 
-Remove any remaining comments before publishing as these may be displayed on Grafana.com -->
+This is a grafana data source that uses IEEE1888 (a.k.a. FIAP in Japan).
 
-# Fiap
+## Usage
 
-This is a grafana data source that uses ieee1888
+### Datasource Settings
 
-<!-- To help maximize the impact of your README and improve usability for users, we propose the following loose structure:
+![DatasourceSettings](https://raw.githubusercontent.com/SIOS-Technology-Inc/grafana-fiap-datasource/refs/heads/main/src/img/settings.png)
 
-**BEFORE YOU BEGIN**
-- Ensure all links are absolute URLs so that they will work when the README is displayed within Grafana and Grafana.com
-- Be inspired ✨
-  - [grafana-polystat-panel](https://github.com/grafana/grafana-polystat-panel)
-  - [volkovlabs-variable-panel](https://github.com/volkovlabs/volkovlabs-variable-panel)
+| Setting         | Detail                                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------------------------------ |
+| URL             | URI of the server to connect (with port)                                                                     |
+| Server timezone | If the server only handles queries by certain timezone, its timezone <br> Default: UTC <br> Format: `+09:00` |
 
-**ADD SOME BADGES**
+### Query Settings
 
-Badges convey useful information at a glance for users whether in the Catalog or viewing the source code. You can use the generator on [Shields.io](https://shields.io/badges/dynamic-json-badge) together with the Grafana.com API
-to create dynamic badges that update automatically when you publish a new version to the marketplace.
+![QuerySettings](https://raw.githubusercontent.com/SIOS-Technology-Inc/grafana-fiap-datasource/refs/heads/main/src/img/query.png)
 
-- For the logo field use 'grafana'.
-- Examples (label: query)
-  - Downloads: $.downloads
-  - Catalog Version: $.version
-  - Grafana Dependency: $.grafanaDependency
-  - Signature Type: $.versionSignatureType
+| Setting                          | Detail                                                                                                                                                                                                                             |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Point ID                         | Equivalent to FIAP key class: `id` <br> Only one entry per line <br> Point IDs are combined into a single FIAP query, and sent as a single FETCH request.                                                                          |
+| - Button                         | Delete the specified Point ID                                                                                                                                                                                                      |
+| + Button                         | Insert a new Point ID field below                                                                                                                                                                                                  |
+| Data range                       | Equivalent to FIAP key class: `select` <br> Choose: Period, Latest, or Oldest                                                                                                                                                      |
+| Period                           | Fetch data in the range specified by **Start/End time** (Equivalent to no `select` option)                                                                                                                                         |
+| Latest                           | Fetch one of the data in the range specified by **Start/End time** that is the latest (Equivalent to `select="maximum"` option)                                                                                                    |
+| Oldest                           | Fetch one of the data in the range specified by **Start/End time** that is the oldest (Equivalent to `select="minimum"` option)                                                                                                    |
+| Start/End time                   | Equivalent to FIAP key class: `gteq`/`lteq` <br> Format: `2006-01-02 15:04:05` <br> If the time part is omitted, `00:00:00` is completed <br> **Server timezone** taken into account in [DatasourceSettings](#datasource-settings) |
+| sync with grafana start/end time | If checked, start/end time will be synchronized with the Time Range in the Grafana Dashboard <br> (**Start/End time** field is disabled)                                                                                           |
 
-Full example: ![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?logo=grafana&query=$.version&url=https://grafana.com/api/plugins/grafana-polystat-panel&label=Marketplace&prefix=v&color=F47A20)
-
-Consider other [badges](https://shields.io/badges) as you feel appropriate for your project.
-
-## Overview / Introduction
-Provide one or more paragraphs as an introduction to your plugin to help users understand why they should use it.
-
-Consider including screenshots:
-- in [plugin.json](https://grafana.com/developers/plugin-tools/reference-plugin-json#info) include them as relative links.
-- in the README ensure they are absolute URLs.
-
-## Requirements
-List any requirements or dependencies they may need to run the plugin.
-
-## Getting Started
-Provide a quick start on how to configure and use the plugin.
-
-## Documentation
-If your project has dedicated documentation available for users, provide links here. For help in following Grafana's style recommendations for technical documentation, refer to our [Writer's Toolkit](https://grafana.com/docs/writers-toolkit/).
-
-## Contributing
-Do you want folks to contribute to the plugin or provide feedback through specific means? If so, tell them how!
--->
+## Others
+The client implementation uses：
+[go-fiap-client](https://pkg.go.dev/github.com/SIOS-Technology-Inc/go-fiap-client)
