@@ -32,6 +32,7 @@ func CreateFiapApiClient(settings *dsmodel.FiapDatasourceSettings) (dsmodel.Fiap
 func (cli *ClientImpl) CheckHealth() (*backend.CheckHealthResult, error) {
 	backend.Logger.Debug("Start to check health", "connectionURL", cli.Settings.Url)
 	resp, err := http.Head(cli.Settings.Url)
+	defer resp.Body.Close()
 	if err != nil {
 		backend.Logger.Error("Failed to check health", "error", err, "response", resp)
 		return &backend.CheckHealthResult{
