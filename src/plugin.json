@@ -9,7 +9,8 @@
   "info": {
     "description": "This is a grafana data source that uses ieee1888(a.k.a FIAP)",
     "author": {
-      "name": "SIOS"
+      "name": "SIOS Technology, Inc.",
+      "url": "https://sios.jp/"
     },
     "keywords": ["datasource", "fiap", "ieee1888"],
     "logos": {
